@@ -3,7 +3,7 @@
 import unittest
 import operator
 
-from ucca import core
+from ucca import core, layer0
 
 # modifying: creating + add edges/nodes + ordering (node, layer) + frozen errs
 # removing: creating + destroy nodes/edges + frozen errs
@@ -129,3 +129,46 @@ class CoreTests(unittest.TestCase):
         node12.destroy()
         self.assertSequenceEqual(l1.heads, [node13, node14])
         self.assertSequenceEqual([x.child for x in node22], [node11, node13])
+
+
+class Layer0Tests(unittest.TestCase):
+    """Tests module layer0 functionality."""
+
+    def test_terminals(self):
+        """Tests :class:layer0.Terminal new and inherited functionality."""
+        p = core.Passage('1')
+        l0 = layer0.Layer0(p)
+        terms = []
+        terms.append(layer0.Terminal(ID='0.1', root=p, tag=layer0.WORD_TAG,
+                                     attrib={layer0._TEXT_ATTRIB: '1',
+                                             layer0._PARAGRAPH_ATTRIB: 1,
+                                             layer0._PARA_POS_ATTRIB: 1}))
+        terms.append(layer0.Terminal(ID='0.2', root=p, tag=layer0.WORD_TAG,
+                                     attrib={layer0._TEXT_ATTRIB: '2',
+                                             layer0._PARAGRAPH_ATTRIB: 2,
+                                             layer0._PARA_POS_ATTRIB: 1}))
+        terms.append(layer0.Terminal(ID='0.3', root=p, tag=layer0.PUNCT_TAG,
+                                     attrib={layer0._TEXT_ATTRIB: '.',
+                                             layer0._PARAGRAPH_ATTRIB: 2,
+                                             layer0._PARA_POS_ATTRIB: 2}))
+
+        self.assertSequenceEqual([t.punct for t in terms],
+                                 [False, False, True])
+        self.assertSequenceEqual([t.text for t in terms], ['1', '2', '.'])
+        self.assertSequenceEqual([t.position for t in terms], [1, 2, 3])
+        self.assertSequenceEqual([t.paragraph for t in terms], [1, 2, 2])
+        self.assertSequenceEqual([t.para_pos for t in terms], [1, 1, 2])
+        self.assertFalse(terms[0] == terms[1])
+        self.assertFalse(terms[0] == terms[2])
+        self.assertFalse(terms[1] == terms[2])
+        self.assertTrue(terms[0] == terms[0])
+
+    def test_layer0(self):
+        p = core.Passage('1')
+        l0 = layer0.Layer0(p)
+        t1 = l0.add_terminal(text='1', punct=False)
+        t2 = l0.add_terminal(text='2', punct=True, paragraph=2)
+        t3 = l0.add_terminal(text='3', punct=False, paragraph=2)
+        self.assertSequenceEqual([x[0] for x in l0.pairs], [1, 2, 3])
+        self.assertSequenceEqual([t.para_pos for t in l0.all], [1, 1, 2])
+        self.assertSequenceEqual(l0.words, (t1, t3))
