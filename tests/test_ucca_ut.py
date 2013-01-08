@@ -3,7 +3,7 @@
 import unittest
 import operator
 
-from ucca import core, layer0
+from ucca import core, layer0, layer1
 
 # modifying: creating + add edges/nodes + ordering (node, layer) + frozen errs
 # removing: creating + destroy nodes/edges + frozen errs
@@ -172,3 +172,167 @@ class Layer0Tests(unittest.TestCase):
         self.assertSequenceEqual([x[0] for x in l0.pairs], [1, 2, 3])
         self.assertSequenceEqual([t.para_pos for t in l0.all], [1, 1, 2])
         self.assertSequenceEqual(l0.words, (t1, t3))
+
+
+class Layer1Tests(unittest.TestCase):
+    """Tests layer1 module functionality and correctness."""
+
+    @staticmethod
+    def _create_passage():
+        """Creates a Passage to work with using layer1 objects.
+
+        Annotation layout (what annotation each terminal has):
+            1: Linker, linked with the first parallel scene
+            2-10: Parallel scene #1, 2-5 ==> Participant #1
+                6-9 ==> Process #1, 10 ==> Punctuation, remote Participant is
+                Adverbial #2
+            11-19: Parallel scene #23, which encapsulated 2 scenes and a linker
+                (not a real scene, has no process, only for grouping)
+            11-15: Parallel scene #2 (under #23), 11-14 ==> Participant #3,
+                15 ==> Adverbial #2, remote Process is Process #1
+            16: Linker #2, links Parallel scenes #2 and #3
+            17-19: Parallel scene #3, 17-18 ==> Process #3,
+                19 ==> Participant #3, implicit Pariticpant
+            20: Punctuation (under the head)
+
+        """
+
+        p = core.Passage('1')
+        l0 = layer0.Layer0(p)
+        l1 = layer1.Layer1(p)
+        # 20 terminals (1-20), #10 and #20 are punctuation
+        terms = [l0.add_terminal(text=str(i), punct=(i % 10 == 0))
+                 for i in range(1, 21)]
+
+        # Linker #1 with terminal 1
+        link1 = l1.add_fnode(None, layer1.EdgeTags.Linker)
+        link1.add(layer1.EdgeTags.Terminal, terms[0])
+
+        # Scene #1: [[2 3 4 5 P] [6 7 8 9 A] [10 U] H]
+        ps1 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        p1 = l1.add_fnode(ps1, layer1.EdgeTags.Process)
+        a1 = l1.add_fnode(ps1, layer1.EdgeTags.Participant)
+        p1.add(layer1.EdgeTags.Terminal, terms[1])
+        p1.add(layer1.EdgeTags.Terminal, terms[2])
+        p1.add(layer1.EdgeTags.Terminal, terms[3])
+        p1.add(layer1.EdgeTags.Terminal, terms[4])
+        a1.add(layer1.EdgeTags.Terminal, terms[5])
+        a1.add(layer1.EdgeTags.Terminal, terms[6])
+        a1.add(layer1.EdgeTags.Terminal, terms[7])
+        a1.add(layer1.EdgeTags.Terminal, terms[8])
+        l1.add_punct(ps1, terms[9])
+
+        # Scene #23: [[11 12 13 14 15 H] [16 L] [17 18 19 H] H]
+        # Scene #2: [[11 12 13 14 P] [15 D]]
+        ps23 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        ps2 = l1.add_fnode(ps23, layer1.EdgeTags.ParallelScene)
+        a2 = l1.add_fnode(ps2, layer1.EdgeTags.Participant)
+        a2.add(layer1.EdgeTags.Terminal, terms[10])
+        a2.add(layer1.EdgeTags.Terminal, terms[11])
+        a2.add(layer1.EdgeTags.Terminal, terms[12])
+        a2.add(layer1.EdgeTags.Terminal, terms[13])
+        d2 = l1.add_fnode(ps2, layer1.EdgeTags.Adverbial)
+        d2.add(layer1.EdgeTags.Terminal, terms[14])
+
+        # Linker #2: [16 L]
+        link2 = l1.add_fnode(ps23, layer1.EdgeTags.Linker)
+        link2.add(layer1.EdgeTags.Terminal, terms[15])
+
+        # Scene #3: [[16 17 S] [18 A] (implicit participant) H]
+        ps3 = l1.add_fnode(ps23, layer1.EdgeTags.ParallelScene)
+        p3 = l1.add_fnode(ps3, layer1.EdgeTags.State)
+        p3.add(layer1.EdgeTags.Terminal, terms[16])
+        p3.add(layer1.EdgeTags.Terminal, terms[17])
+        a3 = l1.add_fnode(ps3, layer1.EdgeTags.Participant)
+        a3.add(layer1.EdgeTags.Terminal, terms[18])
+        a4 = l1.add_fnode(ps3, layer1.EdgeTags.Participant, implicit=True)
+
+        # Punctuation #20 - not under a scene
+        l1.add_punct(None, terms[19])
+
+        # adding remote argument to scene #1, remote process to scene #2
+        # creating linkages L1->H1, H2<-L2->H3
+        l1.add_remote(ps1, layer1.EdgeTags.Participant, d2)
+        l1.add_remote(ps2, layer1.EdgeTags.Process, p1)
+        l1.add_linkage(link1, ps1)
+        l1.add_linkage(link2, ps2, ps3)
+
+        return p
+
+    def test_creation(self):
+        p = self._create_passage()
+        head = p.layer('1').heads[0]
+        self.assertSequenceEqual([x.tag for x in head], ['L', 'H', 'H', 'U'])
+        self.assertSequenceEqual([x.child.position for x in head[0].child],
+                                 [1])
+        self.assertSequenceEqual([x.tag for x in head[1].child],
+                                 ['P', 'A', 'U', 'A'])
+        self.assertSequenceEqual([x.child.position
+                                  for x in head[1].child[0].child],
+                                 [2, 3, 4, 5])
+        self.assertSequenceEqual([x.child.position
+                                  for x in head[1].child[1].child],
+                                 [6, 7, 8, 9])
+        self.assertSequenceEqual([x.child.position
+                                  for x in head[1].child[2].child],
+                                 [10])
+        self.assertTrue(head[1].child[3].attrib.get('remote'))
+
+    def test_fnodes(self):
+        p = self._create_passage()
+        l0 = p.layer('0')
+        l1 = p.layer('1')
+
+        terms = l0.all
+        head, lkg1, lkg2 = l1.heads
+        link1, ps1, ps23, punct2 = [x.child for x in head]
+        p1, a1, punct1 = [x.child for x in ps1 if not x.attrib.get('remote')]
+        ps2, link2, ps3 = [x.child for x in ps23]
+        a2, d2 = [x.child for x in ps2 if not x.attrib.get('remote')]
+        p3, a3, a4 = [x.child for x in ps3]
+
+        self.assertEqual(lkg1.relation, link1)
+        self.assertSequenceEqual(lkg1.arguments, [ps1])
+        self.assertIsNone(ps23.process)
+        self.assertEqual(ps2.process, p1)
+        self.assertSequenceEqual(ps1.participants, [a1, d2])
+        self.assertSequenceEqual(ps3.participants, [a3, a4])
+
+        self.assertSequenceEqual(ps1.get_terminals(), terms[1:10])
+        self.assertSequenceEqual(ps1.get_terminals(punct=False, remotes=True),
+                                 terms[1:9] + terms[14:15])
+        self.assertEqual(ps1.end_position, 10)
+        self.assertEqual(ps2.start_position, 11)
+        self.assertEqual(ps3.start_position, 17)
+        self.assertEqual(a4.start_position, -1)
+        self.assertEqual(ps23.to_text(), '11 12 13 14 15 16 17 18 19')
+
+        self.assertEqual(ps1.fparent, head)
+        self.assertEqual(link2.fparent, ps23)
+        self.assertEqual(ps2.fparent, ps23)
+        self.assertEqual(d2.fparent, ps2)
+
+    def test_layer1(self):
+        p = self._create_passage()
+        l1 = p.layer('1')
+
+        head, lkg1, lkg2 = l1.heads
+        link1, ps1, ps23, punct2 = [x.child for x in head]
+        p1, a1, punct1 = [x.child for x in ps1 if not x.attrib.get('remote')]
+        ps2, link2, ps3 = [x.child for x in ps23]
+        a2, d2 = [x.child for x in ps2 if not x.attrib.get('remote')]
+        p3, a3, a4 = [x.child for x in ps3]
+
+        self.assertSequenceEqual(l1.top_scenes, [ps1, ps2, ps3])
+        self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
+
+        # adding scene #23 to linkage #1, which makes it non top-level as
+        # scene #23 isn't top level
+        lkg1.add(layer1.EdgeTags.LinkArgument, ps23)
+        self.assertSequenceEqual(l1.top_linkages, [lkg2])
+
+        # adding process to scene #23, which makes it top level and discards
+        # "top-levelness" from scenes #2 + #3
+        l1.add_remote(ps23, layer1.EdgeTags.Process, p1)
+        self.assertSequenceEqual(l1.top_scenes, [ps1, ps23])
+        self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
