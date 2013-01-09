@@ -131,9 +131,9 @@ class Layer0(core.Layer):
                 caused by un-ordered Terminal positions in the layer
 
         """
-        position = len(self.all)
-        if position > 0 and paragraph == self.all[position - 1].paragraph:
-            para_pos = self.all[position - 1].para_pos + 1
+        position = len(self.all) + 1  # we want positions to start with 1
+        if position > 1 and paragraph == self.all[-1].paragraph:
+            para_pos = self.all[-1].para_pos + 1
         else:
             para_pos = 1
 
