@@ -12,9 +12,41 @@ import operator
 import functools
 
 
+# Max number of digits allowed for a unique ID
+UNIQUE_ID_MAX_DIGITS = 5
+
+
 # Used as the default ordering key function for ordered objects, namely
 # :class:Layer and :class:Node .
-DEFAULT_KEY_FUNC = operator.attrgetter('ID')
+def id_orderkey(node):
+    """Key function which sorts by layer (string), then by unique ID (int).
+
+    Args:
+        node: :class:Node which we will to sort according to its ID
+
+    Returns:
+        a string with the layer and unique ID in such a way that sort will
+        first order lexicography the layer ID then numerically the unique ID.
+
+    """
+    layer, unique = node.ID.split(Node.ID_SEPARATOR)
+    return "{} {:>{}}".format(layer, unique, UNIQUE_ID_MAX_DIGITS)
+
+
+def edge_id_orderkey(edge):
+    """Key function which sorts Edges by its IDs (using :func:id_orderkey).
+
+    Args:
+        edge: :class:Edge which we wish to sort according to the ID of its
+        parent and children after using :func:id_orderkey.
+
+    Returns:
+        a string with the layer and unique ID in such a way that sort will
+        first order lexicography the layer ID then numerically the unique ID.
+
+    """
+    return Edge.ID_FORMAT.format(id_orderkey(edge.parent),
+                                 id_orderkey(edge.child))
 
 
 class UCCAError(Exception):
@@ -233,7 +265,7 @@ class Node:
     ID_SEPARATOR = '.'
 
     def __init__(self, ID, root, tag, attrib=None, *,
-                 orderkey=DEFAULT_KEY_FUNC):
+                 orderkey=edge_id_orderkey):
         """Creates a new :class:Node object.
 
         Args:
@@ -400,7 +432,7 @@ class Layer:
 
     """
 
-    def __init__(self, ID, root, attrib=None, *, orderkey=DEFAULT_KEY_FUNC):
+    def __init__(self, ID, root, attrib=None, *, orderkey=id_orderkey):
         """Creates a new :class:Layer object.
 
         Args:
