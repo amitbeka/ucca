@@ -30,9 +30,9 @@ class CoreTests(unittest.TestCase):
 
         """
         p = core.Passage(ID='1')
-        layer1 = core.Layer(ID='1', root=p)
-        layer2 = core.Layer(ID='2', root=p, attrib={'test': True},
-                            orderkey=lambda x: -1 * int(x.ID.split('.')[1]))
+        l1 = core.Layer(ID='1', root=p)
+        l1 = core.Layer(ID='2', root=p, attrib={'test': True},
+                        orderkey=lambda x: -1 * int(x.ID.split('.')[1]))
 
         # Order is explicitly different in order to break the alignment between
         # the ID/Edge ordering and the order of creation/addition
