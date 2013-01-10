@@ -139,18 +139,21 @@ class Layer0Tests(unittest.TestCase):
         p = core.Passage('1')
         l0 = layer0.Layer0(p)
         terms = []
-        terms.append(layer0.Terminal(ID='0.1', root=p, tag=layer0.WORD_TAG,
-                                     attrib={layer0._TEXT_ATTRIB: '1',
-                                             layer0._PARAGRAPH_ATTRIB: 1,
-                                             layer0._PARA_POS_ATTRIB: 1}))
-        terms.append(layer0.Terminal(ID='0.2', root=p, tag=layer0.WORD_TAG,
-                                     attrib={layer0._TEXT_ATTRIB: '2',
-                                             layer0._PARAGRAPH_ATTRIB: 2,
-                                             layer0._PARA_POS_ATTRIB: 1}))
-        terms.append(layer0.Terminal(ID='0.3', root=p, tag=layer0.PUNCT_TAG,
-                                     attrib={layer0._TEXT_ATTRIB: '.',
-                                             layer0._PARAGRAPH_ATTRIB: 2,
-                                             layer0._PARA_POS_ATTRIB: 2}))
+        terms.append(layer0.Terminal(ID='0.1', root=p,
+                                     tag=layer0.NodeTags.Word,
+                                     attrib={'text': '1',
+                                             'paragraph': 1,
+                                             'paragraph_position': 1}))
+        terms.append(layer0.Terminal(ID='0.2', root=p,
+                                     tag=layer0.NodeTags.Word,
+                                     attrib={'text': '2',
+                                             'paragraph': 2,
+                                             'paragraph_position': 1}))
+        terms.append(layer0.Terminal(ID='0.3', root=p,
+                                     tag=layer0.NodeTags.Punct,
+                                     attrib={'text': '.',
+                                             'paragraph': 2,
+                                             'paragraph_position': 2}))
 
         self.assertSequenceEqual([t.punct for t in terms],
                                  [False, False, True])

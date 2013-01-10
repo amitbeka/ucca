@@ -13,14 +13,14 @@ from . import core
 # Layer ID
 LAYER_ID = '0'
 
-# Possible tags for Terminals
-PUNCT_TAG = "Punctuation"
-WORD_TAG = "Word"
 
-# Key names inside Terminal.attrib dictionary
-_TEXT_ATTRIB = 'text'
-_PARAGRAPH_ATTRIB = 'paragraph'
-_PARA_POS_ATTRIB = 'paragraph_position'
+class NodeTags:
+    Punct = 'Punctuation'
+    Word = 'Word'
+    __init__ = None
+
+
+ATTRIB_KEYS = ('text', 'paragraph', 'paragraph_position')
 
 
 class Terminal(core.Node):
@@ -34,7 +34,7 @@ class Terminal(core.Node):
     Attributes:
         ID: the unique ID of each Terminal is its global position in the
         Passage, e.g. ID=0.4 is the 4th Terminal in the :class:Passage.
-        tag: either PUNCT_TAG or WORD_TAG
+        tag: from NodeTags
         layer: '0' (LAYER_ID)
         attrib: returns a copy of the attribute dictionary, so changing it
             will not affect the Terminal object
@@ -49,7 +49,7 @@ class Terminal(core.Node):
 
     @property
     def text(self):
-        return self.attrib[_TEXT_ATTRIB]
+        return self.attrib['text']
 
     @property
     def position(self):
@@ -58,11 +58,11 @@ class Terminal(core.Node):
 
     @property
     def para_pos(self):
-        return self.attrib[_PARA_POS_ATTRIB]
+        return self.attrib['paragraph_position']
 
     @property
     def paragraph(self):
-        return self.attrib[_PARAGRAPH_ATTRIB]
+        return self.attrib['paragraph']
 
     @property
     def attrib(self):
@@ -70,7 +70,7 @@ class Terminal(core.Node):
 
     @property
     def punct(self):
-        return self.tag == PUNCT_TAG
+        return self.tag == NodeTags.Punct
 
     def __eq__(self, other):
         """Equals if they are of the same Passage, Layer, position & text."""
@@ -137,13 +137,13 @@ class Layer0(core.Layer):
         else:
             para_pos = 1
 
-        tag = PUNCT_TAG if punct else WORD_TAG
+        tag = NodeTags.Punct if punct else NodeTags.Word
         return Terminal(ID="{}{}{}".format(LAYER_ID, core.Node.ID_SEPARATOR,
                                            position),
                         root=self.root, tag=tag,
-                        attrib={_TEXT_ATTRIB: text,
-                                _PARAGRAPH_ATTRIB: paragraph,
-                                _PARA_POS_ATTRIB: para_pos})
+                        attrib={'text': text,
+                                'paragraph': paragraph,
+                                'paragraph_position': para_pos})
 
 
 def is_punct(node):
