@@ -2,8 +2,9 @@
 
 import unittest
 import operator
+import xml.etree.ElementTree as ETree
 
-from ucca import core, layer0, layer1
+from ucca import core, layer0, layer1, convert
 
 
 class CoreTests(unittest.TestCase):
@@ -336,3 +337,133 @@ class Layer1Tests(unittest.TestCase):
         l1.add_remote(ps23, layer1.EdgeTags.Process, p1)
         self.assertSequenceEqual(l1.top_scenes, [ps1, ps23])
         self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
+
+
+class ConversionTests(unittest.TestCase):
+    """Tests convert module correctness and API."""
+
+    @staticmethod
+    def _load_xml(path):
+        """XML file path ==> root element"""
+        with open(path) as f:
+            return ETree.ElementTree().parse(f)
+
+    def _test_edges(self, node, tags):
+        """Tests that the node edge tags and number match tags argument."""
+        self.assertEqual(len(node), len(tags))
+        for edge, tag in zip(node, tags):
+            self.assertEqual(edge.tag, tag)
+
+    def _test_terms(self, node, terms):
+        """Tests that node contain the terms given, and only them."""
+        for edge, term in zip(node, terms):
+            self.assertEqual(edge.tag, layer1.EdgeTags.Terminal)
+            self.assertEqual(edge.child, term)
+
+    def test_site_terminals(self):
+        elem = self._load_xml('./site1.xml')
+        passage = convert.from_site(elem)
+        terms = passage.layer(layer0.LAYER_ID).all
+
+        self.assertEqual(passage.ID, '118')
+        self.assertEqual(len(terms), 15)
+
+        # There are two punctuation signs (dots, positions 5 and 11), which
+        # also serve as paragraph end points. All others are words whose text
+        # is their positions, so test that both text, punctuation (yes/no)
+        # and paragraphs are converted correctly
+        for i, t in enumerate(terms):
+            # i starts in 0, positions at 1, hence 5,11 ==> 4,10
+            if i in (4, 10):
+                self.assertTrue(t.text == '.' and t.punct is True)
+            else:
+                self.assertTrue(t.text == str(i + 1) and t.punct is False)
+            if i < 5:
+                par = 1
+            elif i < 11:
+                par = 2
+            else:
+                par = 3
+            self.assertEqual(t.paragraph, par)
+
+    def test_site_simple(self):
+        elem = self._load_xml('./site2.xml')
+        passage = convert.from_site(elem)
+        terms = passage.layer(layer0.LAYER_ID).all
+        l1 = passage.layer('1')
+
+        # The Terminals in the passage are just like in test_site_terminals,
+        # with this layer1 heirarchy: [[1 C] [2 E] L] [3 4 . H]
+        # with the linker having a remark and the parallel scene is uncertain
+        head = l1.heads[0]
+        self.assertEqual(len(head), 12)  # including all 'unused' terminals
+        self.assertEqual(head[9].tag, layer1.EdgeTags.Linker)
+        self.assertEqual(head[10].tag, layer1.EdgeTags.ParallelScene)
+        linker = head[9].child
+        self._test_edges(linker, [layer1.EdgeTags.Center,
+                                  layer1.EdgeTags.Elaborator])
+        self.assertTrue(linker.extra['remarks'], '"remark"')
+        center = linker[0].child
+        elab = linker[1].child
+        self._test_terms(center, terms[0:1])
+        self._test_terms(elab, terms[1:2])
+        ps = head[10].child
+        self._test_edges(ps, [layer1.EdgeTags.Terminal,
+                              layer1.EdgeTags.Terminal,
+                              layer1.EdgeTags.Punctuation])
+        self.assertTrue(ps.attrib.get('uncertain'))
+        self.assertEqual(ps[0].child, terms[2])
+        self.assertEqual(ps[1].child, terms[3])
+        self.assertEqual(ps[1].child, terms[3])
+        self.assertEqual(ps[2].child[0].child, terms[4])
+
+    def test_site_advanced(self):
+        elem = self._load_xml('./site3.xml')
+        passage = convert.from_site(elem)
+        terms = passage.layer(layer0.LAYER_ID).all
+        l1 = passage.layer('1')
+
+        # This passage has the same terminals as the simple and terminals test,
+        # and have the same layer1 units for the first paragraph as the simple
+        # test. In addition, it has the following annotation:
+        # [6 7 8 9 H] [10 F] .
+        # the 6-9 H has remote D which is [10 F]. Inside of 6-9, we have [8 S]
+        # and [6 7 .. 9 A], where [6 E] and [7 .. 9 C].
+        # [12 H] [13 H] [14 H] [15 L], where 15 linkage links 12, 13 and 14 and
+        # [15 L] has an implicit Center unit
+        head, lkg = l1.heads
+        self._test_edges(head, [layer1.EdgeTags.Linker,
+                                layer1.EdgeTags.ParallelScene,
+                                layer1.EdgeTags.ParallelScene,
+                                layer1.EdgeTags.Function,
+                                layer1.EdgeTags.Punctuation,
+                                layer1.EdgeTags.ParallelScene,
+                                layer1.EdgeTags.ParallelScene,
+                                layer1.EdgeTags.ParallelScene,
+                                layer1.EdgeTags.Linker])
+
+        # we only take what we haven't checked already
+        ps1, func, punct, ps2, ps3, ps4, link = [x.child for x in head[2:]]
+        self._test_edges(ps1, [layer1.EdgeTags.Participant,
+                               layer1.EdgeTags.Process,
+                               layer1.EdgeTags.Adverbial])
+        self.assertTrue(ps1[2].attrib.get('remote'))
+        ps1_a, ps1_p, ps1_d = [x.child for x in ps1]
+        self._test_edges(ps1_a, [layer1.EdgeTags.Elaborator,
+                                 layer1.EdgeTags.Center])
+        self._test_terms(ps1_a[0].child, terms[5:6])
+        self._test_terms(ps1_a[1].child, terms[6:9:2])
+        self._test_terms(ps1_p, terms[7:8])
+        self.assertEqual(ps1_d, func)
+        self._test_terms(func, terms[9:10])
+        self._test_terms(punct, terms[10:11])
+        self._test_terms(ps2, terms[11:12])
+        self._test_terms(ps3, terms[12:13])
+        self._test_terms(ps4, terms[13:14])
+        self.assertEqual(len(link), 2)
+        self.assertEqual(link[0].tag, layer1.EdgeTags.Terminal)
+        self.assertEqual(link[0].child, terms[14])
+        self.assertEqual(link[1].tag, layer1.EdgeTags.Center)
+        self.assertTrue(link[1].child.attrib.get('implicit'))
+        self.assertEqual(lkg.relation, link)
+        self.assertSequenceEqual(lkg.arguments, [ps2, ps3, ps4])
