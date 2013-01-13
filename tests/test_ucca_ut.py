@@ -5,9 +5,6 @@ import operator
 
 from ucca import core, layer0, layer1
 
-# modifying: creating + add edges/nodes + ordering (node, layer) + frozen errs
-# removing: creating + destroy nodes/edges + frozen errs
-
 
 class CoreTests(unittest.TestCase):
 
