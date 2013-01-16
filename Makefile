@@ -12,8 +12,8 @@ help:
 	@echo "Passible make targets:"
 	@echo "make help -- this help message"
 	@echo "make clean -- removes all file not tracked by git, except tag files"
-	@echo "make dev_install -- install the library under the user's path using soft links"
-	@echo "make full_install -- install the library under the user's path by copying"
+	@echo "make dev-install -- install the library under the user's path using soft links"
+	@echo "make full-install -- install the library under the user's path by copying"
 	@echo "make tags -- (re-)creates tags and pycscope files"
 	@echo "make test -- run tests directory"
 	@echo "make uninstall - remove the installation directory"
@@ -31,11 +31,11 @@ test:
 	(cd ./tests && python3 -m unittest -v)
 
 install:
-	@echo "Use either full_install or dev_install as make targets:"
-	@echo "dev_install will create ~/lib/python/ucca and soft link to these files."
+	@echo "Use either full-install or dev-install as make targets:"
+	@echo "dev-install will create ~/lib/python/ucca and soft link to these files."
 	@echo "It is more suited for developers which want each change in the repository"
 	@echo "to be reflected automatically in the run-time code."
-	@echo "full_install will create ~/lib/python/ucca and copy the package files there."
+	@echo "full-install will create ~/lib/python/ucca and copy the package files there."
 
 dev-install:
 	@echo Installing to $(INSTALL_PATH) ...
