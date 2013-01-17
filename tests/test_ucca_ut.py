@@ -128,6 +128,63 @@ class CoreTests(unittest.TestCase):
         self.assertSequenceEqual(l1.heads, [node13, node14])
         self.assertSequenceEqual(node22.children, [node11, node13])
 
+    def test_equals(self):
+        p1 = core.Passage('1')
+        p2 = core.Passage('2')
+        p1l0 = layer0.Layer0(p1)
+        p2l0 = layer0.Layer0(p2)
+        p1l1 = layer1.Layer1(p1)
+        p2l1 = layer1.Layer1(p2)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+
+        # Checks basic passage equality and Attrib/tag/len differences
+        p1l0.add_terminal('0', False)
+        p1l0.add_terminal('1', False)
+        p1l0.add_terminal('2', False)
+        p2l0.add_terminal('0', False)
+        p2l0.add_terminal('1', False)
+        p2l0.add_terminal('2', False)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        pnct2 = p2l0.add_terminal('3', True)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        temp = p1l0.add_terminal('3', False)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        temp.destroy()
+        pnct1 = p1l0.add_terminal('3', True)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+
+        # Check Edge and node equality
+        ps1 = p1l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        ps2 = p2l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        ps1a1 = p1l1.add_fnode(ps1, layer1.EdgeTags.Participant)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        self.assertTrue(ps1.equals(ps2, recursive=False))
+        ps2p1 = p2l1.add_fnode(ps2, layer1.EdgeTags.Process)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        ps2a2 = p2l1.add_fnode(ps2, layer1.EdgeTags.Participant)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        ps1p2 = p1l1.add_fnode(ps1, layer1.EdgeTags.Process)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        self.assertFalse(p1.equals(p2, ordered=True) or
+                         p2.equals(p1, ordered=True))
+        ps1d3 = p1l1.add_fnode(ps1, layer1.EdgeTags.Adverbial, implicit=True)
+        ps2d3 = p2l1.add_fnode(ps2, layer1.EdgeTags.Adverbial)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        ps2d3.attrib['implicit'] = True
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        ps2[2].attrib['remote'] = True
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        ps1[2].attrib['remote'] = True
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        p1l1.add_punct(None, pnct1)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+        p2l1.add_punct(None, pnct2)
+        self.assertTrue(p1.equals(p2) and p2.equals(p1))
+        p1l2 = core.Layer('2', p1)
+        self.assertFalse(p1.equals(p2) or p2.equals(p1))
+
 
 class Layer0Tests(unittest.TestCase):
     """Tests module layer0 functionality."""

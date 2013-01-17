@@ -150,6 +150,18 @@ class _AttributeDict:
     def get(self, key, default=None):
         return self._dict.get(key, default)
 
+    def equals(self, other):
+        """True iff the two objects are equal (only dicts, w.o.r.t Passage).
+
+        Args:
+            other: AttributeDict to compare to
+
+        Returns:
+            True iff the dictionaries contains are equal.
+
+        """
+        return self._dict == other._dict
+
     @property
     def root(self):
         return self._root
@@ -236,6 +248,27 @@ class Edge:
     @property
     def ID(self):
         return Edge.ID_FORMAT.format(self._parent.ID, self._child.ID)
+
+    def equals(self, other, *, recursive=True, ordered=False):
+        """Returns whether self and other are Edge-equals.
+
+        Edge-equality is determined by having the same tag and attributes.
+        Recursive Edge-equality means that the Edgesa are equal, and their
+        children are recursively Node-equal.
+
+        Args:
+            other: an Edge object to compare to
+            recursive: whether to compare recuresively, deafults to True
+            ordered: if recursive, whether the children are Node-equivalent
+                w.r.t order (see Node.equals())
+
+        Returns:
+            True iff the Edges are equal.
+
+        """
+        if self.tag != other.tag or not self._attrib.equals(other._attrib):
+            return False
+        return self.child.equals(other.child, ordered=ordered)
 
 
 class Node:
@@ -411,6 +444,50 @@ class Node:
         self.layer._remove_node(self)
         self._root._remove_node(self)
 
+    def equals(self, other, *, recursive=True, ordered=False):
+        """Returns whether the self Node-equals other.
+
+        Node-equality is basically determined by self and other having the same
+        tag and attributes. Recursive equality is achieved when all outgoing
+        Edges are Edge-equal, and their children are recursively Node-equal
+        as well. Ordered equality means that the outgoing Edges should be
+        equivalent to each other w.r.t order (the first to the first etc.),
+        while unordered equality means that each Edges are equivalent after
+        being ordered with some determined order.
+
+        Args:
+            other: the Node object to compare to
+            recursive: whether comparison is recursive, defaults to True.
+            ordered: whther comparison should include strict ordering,
+                defaults to False
+
+        Returns:
+            True iff the Nodes are equal in the terms given.
+
+        """
+        if self.tag != other.tag or not self._attrib.equals(other._attrib):
+            return False
+        if not recursive:
+            return True
+        if len(self) != len(other):
+            return False  # not necessary, but gives better performance
+        if ordered:
+            return all(e1.equals(e2, recursive=True, ordered=True)
+                       for e1, e2 in zip(self, other))
+        # For unordered equality, I try to find & remove an equivalent
+        # Edge + Node couple from other's Edges until exhausted.
+        # Because both Edge-equality and Node-equiality are equivalence
+        # classes, I can just take the first I found and remove it w/o
+        # trying to iterate through possible orders.
+        edges = list(other)
+        try:
+            for e1 in self:
+                edges.remove([e2 for e2 in edges
+                              if e1.equals(e2, recursive=True)][0])
+        except IndexError:
+            return False
+        return True
+
 
 class Layer:
     """Group of similar :class:Node objects in UCCA annotation graph.
@@ -488,6 +565,40 @@ class Layer:
         self._orderkey = value
         self._all.sort(key=value)
         self._heads.sort(key=value)
+
+    def equals(self, other, *, ordered=False):
+        """Returns whether two Layer objects are equal.
+
+        Layers are considered Layer-equal if their attribure dictionaries are
+        equal and all their heads are recursively Node-equal.
+        Ordered Layer-equality implies that the heads should be
+        ordered the same for the Layers to be considered equal, and the
+        Node-equality is ordered too.
+
+        Args:
+            other: the Layer object to compare to
+            ordered: whther strict-order equality is used, defaults to False
+
+        Returns:
+            True iff self and other are Layer-equal.
+
+        """
+        if not self._attrib.equals(other._attrib):
+            return False
+        if len(self.heads) != len(other.heads):
+            return False  # can be removed, here for performance gain
+        if ordered:
+            return all(x1.equals(x2, ordered=True)
+                       for x1, x2 in zip(self.heads, other.heads))
+        # I can just find the first equal head in unordered search, as
+        # Node-equality is an equivalence class (see their for details).
+        heads = list(other.heads)
+        try:
+            for h1 in self.heads:
+                heads.remove([h2 for h2 in heads if h1.equals(h2)][0])
+        except IndexError:
+            return False
+        return True
 
     def _add_edge(self, edge):
         """Alters self.heads if an :class:Edge has been added to the subgraph.
@@ -601,6 +712,33 @@ class Passage:
 
         """
         return self._layers[ID]
+
+    def equals(self, other, *, ordered=False):
+        """Returns whether two passages are equivalent.
+
+        Passage-equivalence is determined by having the same attributes and
+        all layers (according to ID) are Layer-equivalent.
+
+        Args:
+            other: the Passage object to compare to
+            ordered: is Layer-equivalency should be ordered (see there)
+
+        Returns:
+            True iff self is Passage-equivalent to other.
+
+        """
+        if not self._attrib.equals(other._attrib):
+            return False
+        if len(self.layers) != len(other.layers):
+            return False  # can be removed, here for performance gain
+        try:
+            for lid, l1 in self._layers.items():
+                l2 = other.layer(lid)
+                if not l1.equals(l2, ordered=ordered):
+                    return False
+        except KeyError:  # no layer with same ID found
+            return False
+        return True
 
     @ModifyPassage
     def _add_layer(self, layer):
