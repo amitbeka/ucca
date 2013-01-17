@@ -256,6 +256,7 @@ class Node:
         tag: the string label of the Node
         layer: the Layer this Node belongs to
         parents: the Nodes which have incoming Edges to this object
+        children: the Nodes which have outgoing Edges from this object
         orderkey: the key function for ordering the outgoing Edges
         ID_SEPARATOR: separator function between the Layer ID and the unique
             Node ID in the complete ID of the Node. Mustn't be alphanumeric.
@@ -314,6 +315,10 @@ class Node:
     @property
     def parents(self):
         return [edge.parent for edge in self._incoming]
+
+    @property
+    def children(self):
+        return [edge.child for edge in self._outgoing]
 
     def __bool__(self):
         return True

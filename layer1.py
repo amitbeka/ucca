@@ -107,7 +107,7 @@ class PunctNode(core.Node):
 
     @property
     def terminals(self):
-        return [x.child for x in self]
+        return self.children
 
 
 class Linkage(core.Node):

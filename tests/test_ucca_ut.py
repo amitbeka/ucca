@@ -81,7 +81,7 @@ class CoreTests(unittest.TestCase):
         self.assertSequenceEqual(node13.parents, [node12, node22])
         self.assertDictEqual(node13.attrib.copy(), {'node': True})
         self.assertEqual(len(node12), 2)
-        self.assertSequenceEqual([x.child for x in node12], [node13, node11])
+        self.assertSequenceEqual(node12.children, [node13, node11])
         self.assertDictEqual(node12[0].attrib.copy(), {'edge': True})
         self.assertSequenceEqual(node12.parents, [node22, node21])
         self.assertEqual(node21[0].ID, '2.1->1.1')
@@ -126,7 +126,7 @@ class CoreTests(unittest.TestCase):
         self.assertSequenceEqual(l1.heads, [node12, node14])
         node12.destroy()
         self.assertSequenceEqual(l1.heads, [node13, node14])
-        self.assertSequenceEqual([x.child for x in node22], [node11, node13])
+        self.assertSequenceEqual(node22.children, [node11, node13])
 
 
 class Layer0Tests(unittest.TestCase):
@@ -264,20 +264,20 @@ class Layer1Tests(unittest.TestCase):
         p = self._create_passage()
         head = p.layer('1').heads[0]
         self.assertSequenceEqual([x.tag for x in head], ['L', 'H', 'H', 'U'])
-        self.assertSequenceEqual([x.child.position for x in head[0].child],
+        self.assertSequenceEqual([x.child.position for x in head.children[0]],
                                  [1])
-        self.assertSequenceEqual([x.tag for x in head[1].child],
+        self.assertSequenceEqual([x.tag for x in head.children[1]],
                                  ['P', 'A', 'U', 'A'])
         self.assertSequenceEqual([x.child.position
-                                  for x in head[1].child[0].child],
+                                  for x in head.children[1].children[0]],
                                  [2, 3, 4, 5])
         self.assertSequenceEqual([x.child.position
-                                  for x in head[1].child[1].child],
+                                  for x in head.children[1].children[1]],
                                  [6, 7, 8, 9])
         self.assertSequenceEqual([x.child.position
-                                  for x in head[1].child[2].child],
+                                  for x in head.children[1].children[2]],
                                  [10])
-        self.assertTrue(head[1].child[3].attrib.get('remote'))
+        self.assertTrue(head.children[1][3].attrib.get('remote'))
 
     def test_fnodes(self):
         p = self._create_passage()
@@ -286,11 +286,11 @@ class Layer1Tests(unittest.TestCase):
 
         terms = l0.all
         head, lkg1, lkg2 = l1.heads
-        link1, ps1, ps23, punct2 = [x.child for x in head]
+        link1, ps1, ps23, punct2 = head.children
         p1, a1, punct1 = [x.child for x in ps1 if not x.attrib.get('remote')]
-        ps2, link2, ps3 = [x.child for x in ps23]
+        ps2, link2, ps3 = ps23.children
         a2, d2 = [x.child for x in ps2 if not x.attrib.get('remote')]
-        p3, a3, a4 = [x.child for x in ps3]
+        p3, a3, a4 = ps3.children
 
         self.assertEqual(lkg1.relation, link1)
         self.assertSequenceEqual(lkg1.arguments, [ps1])
@@ -318,11 +318,11 @@ class Layer1Tests(unittest.TestCase):
         l1 = p.layer('1')
 
         head, lkg1, lkg2 = l1.heads
-        link1, ps1, ps23, punct2 = [x.child for x in head]
+        link1, ps1, ps23, punct2 = head.children
         p1, a1, punct1 = [x.child for x in ps1 if not x.attrib.get('remote')]
-        ps2, link2, ps3 = [x.child for x in ps23]
+        ps2, link2, ps3 = ps23.children
         a2, d2 = [x.child for x in ps2 if not x.attrib.get('remote')]
-        p3, a3, a4 = [x.child for x in ps3]
+        p3, a3, a4 = ps3.children
 
         self.assertSequenceEqual(l1.top_scenes, [ps1, ps2, ps3])
         self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
@@ -399,23 +399,22 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(len(head), 12)  # including all 'unused' terminals
         self.assertEqual(head[9].tag, layer1.EdgeTags.Linker)
         self.assertEqual(head[10].tag, layer1.EdgeTags.ParallelScene)
-        linker = head[9].child
+        linker = head.children[9]
         self._test_edges(linker, [layer1.EdgeTags.Center,
                                   layer1.EdgeTags.Elaborator])
         self.assertTrue(linker.extra['remarks'], '"remark"')
-        center = linker[0].child
-        elab = linker[1].child
+        center = linker.children[0]
+        elab = linker.children[1]
         self._test_terms(center, terms[0:1])
         self._test_terms(elab, terms[1:2])
-        ps = head[10].child
+        ps = head.children[10]
         self._test_edges(ps, [layer1.EdgeTags.Terminal,
                               layer1.EdgeTags.Terminal,
                               layer1.EdgeTags.Punctuation])
         self.assertTrue(ps.attrib.get('uncertain'))
-        self.assertEqual(ps[0].child, terms[2])
-        self.assertEqual(ps[1].child, terms[3])
-        self.assertEqual(ps[1].child, terms[3])
-        self.assertEqual(ps[2].child[0].child, terms[4])
+        self.assertEqual(ps.children[0], terms[2])
+        self.assertEqual(ps.children[1], terms[3])
+        self.assertEqual(ps.children[2].children[0], terms[4])
 
     def test_site_advanced(self):
         elem = self._load_xml('./site3.xml')
@@ -443,16 +442,16 @@ class ConversionTests(unittest.TestCase):
                                 layer1.EdgeTags.Linker])
 
         # we only take what we haven't checked already
-        ps1, func, punct, ps2, ps3, ps4, link = [x.child for x in head[2:]]
+        ps1, func, punct, ps2, ps3, ps4, link = head.children[2:]
         self._test_edges(ps1, [layer1.EdgeTags.Participant,
                                layer1.EdgeTags.Process,
                                layer1.EdgeTags.Adverbial])
         self.assertTrue(ps1[2].attrib.get('remote'))
-        ps1_a, ps1_p, ps1_d = [x.child for x in ps1]
+        ps1_a, ps1_p, ps1_d = ps1.children
         self._test_edges(ps1_a, [layer1.EdgeTags.Elaborator,
                                  layer1.EdgeTags.Center])
-        self._test_terms(ps1_a[0].child, terms[5:6])
-        self._test_terms(ps1_a[1].child, terms[6:9:2])
+        self._test_terms(ps1_a.children[0], terms[5:6])
+        self._test_terms(ps1_a.children[1], terms[6:9:2])
         self._test_terms(ps1_p, terms[7:8])
         self.assertEqual(ps1_d, func)
         self._test_terms(func, terms[9:10])
@@ -462,8 +461,8 @@ class ConversionTests(unittest.TestCase):
         self._test_terms(ps4, terms[13:14])
         self.assertEqual(len(link), 2)
         self.assertEqual(link[0].tag, layer1.EdgeTags.Terminal)
-        self.assertEqual(link[0].child, terms[14])
+        self.assertEqual(link.children[0], terms[14])
         self.assertEqual(link[1].tag, layer1.EdgeTags.Center)
-        self.assertTrue(link[1].child.attrib.get('implicit'))
+        self.assertTrue(link.children[1].attrib.get('implicit'))
         self.assertEqual(lkg.relation, link)
         self.assertSequenceEqual(lkg.arguments, [ps2, ps3, ps4])
