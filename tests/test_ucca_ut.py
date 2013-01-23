@@ -523,3 +523,9 @@ class ConversionTests(unittest.TestCase):
         self.assertTrue(link.children[1].attrib.get('implicit'))
         self.assertEqual(lkg.relation, link)
         self.assertSequenceEqual(lkg.arguments, [ps2, ps3, ps4])
+
+    def test_to_standard(self):
+        passage = convert.from_site(self._load_xml('./site3.xml'))
+        ref = self._load_xml('./standard3.xml')
+        root = convert.to_standard(passage)
+        self.assertEqual(ETree.tostring(ref), ETree.tostring(root))

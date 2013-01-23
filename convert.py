@@ -10,7 +10,9 @@ The possible other formats are:
 
 """
 
+import operator
 import xml.sax.saxutils
+import xml.etree.ElementTree as ET
 
 from . import core, layer0, layer1
 
@@ -303,3 +305,51 @@ def from_site(elem):
     _from_site_terminals(elem, passage, elem2node)
     _from_site_annotation(elem, passage, elem2node)
     return passage
+
+
+def to_standard(passage):
+    """Converts a Passage object to a standard XML root element.
+
+    The standard XML specification is not contained here, but it uses a very
+    shallow structure with attributes to create hierarchy.
+
+    Args:
+        passage: the passage to convert
+
+    Returns:
+        the root element of the standard XML structure
+
+    """
+
+    # This utility stringifies the Unit's attributes for proper XML
+    # we don't need to escape the character - the serializer of the XML element
+    # will do it (e.g. tostring())
+    stringify = lambda dic: {str(k): str(v) for k, v in dic.items()}
+
+    # Utility to add an extra element if exists in the object
+    add_extra = lambda obj, elem: obj.extra and ET.SubElement(elem, 'extra',
+                                                        stringify(obj.extra))
+
+    # Adds attributes element (even if empty)
+    add_attrib = lambda obj, elem: ET.SubElement(elem, 'attributes',
+                                                 stringify(obj.attrib))
+
+    root = ET.Element('root', passageID=str(passage.ID), annotationID='0')
+    add_attrib(passage, root)
+    add_extra(passage, root)
+
+    for layer in sorted(passage.layers, key=operator.attrgetter('ID')):
+        layer_elem = ET.SubElement(root, 'layer', layerID=layer.ID)
+        add_attrib(layer, layer_elem)
+        add_extra(layer, layer_elem)
+        for node in layer.all:
+            node_elem = ET.SubElement(layer_elem, node.__class__.__name__,
+                                      ID=node.ID, type=node.tag)
+            add_attrib(node, node_elem)
+            add_extra(node, node_elem)
+            for edge in node:
+                edge_elem = ET.SubElement(node_elem, edge.__class__.__name__,
+                                          toID=edge.child.ID, type=edge.tag)
+                add_attrib(edge, edge_elem)
+                add_extra(edge, edge_elem)
+    return root
