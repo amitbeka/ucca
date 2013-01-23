@@ -180,6 +180,9 @@ class _AttributeDict:
     def __len__(self):
         return len(self._dict)
 
+    def items(self):
+        return self._dict.items()
+
 
 class Edge:
     """Labeled edge between two :class:Node objects in UCCA annotation graph.
