@@ -670,6 +670,7 @@ class Passage:
         attrib: attribute dictionary of the Passage
         extra: temporary storage space for undocumented attribues and data
         layers: all Layers of the Passage, no order guaranteed
+        nodes: dictionary of ID-node pairs for all the nodes in the Passage
         frozen: indicates whether the Passage can be modified or not, boolean.
 
     """
@@ -703,6 +704,10 @@ class Passage:
     @property
     def layers(self):
         return self._layers.values()
+
+    @property
+    def nodes(self):
+        return self._nodes.copy()
 
     def layer(self, ID):
         """Returns the :class:Layer object whose ID is given.
