@@ -353,3 +353,62 @@ def to_standard(passage):
                 add_attrib(edge, edge_elem)
                 add_extra(edge, edge_elem)
     return root
+
+
+def from_standard(root, extra_funcs={}):
+
+    attribute_converters = {
+        'paragraph': (lambda x: int(x)),
+        'paragraph_position': (lambda x: int(x)),
+        'remote': (lambda x: True if x == 'True' else False),
+        'implicit': (lambda x: True if x == 'True' else False),
+        'uncertain': (lambda x: True if x == 'True' else False),
+        'suggest': (lambda x: True if x == 'True' else False),
+    }
+
+    layer_objs = {layer0.LAYER_ID: layer0.Layer0,
+                  layer1.LAYER_ID: layer1.Layer1}
+
+    node_objs = {layer0.NodeTags.Word: layer0.Terminal,
+                 layer0.NodeTags.Punct: layer0.Terminal,
+                 layer1.NodeTags.Foundational: layer1.FoundationalNode,
+                 layer1.NodeTags.Linkage: layer1.Linkage,
+                 layer1.NodeTags.Punctuation: layer1.PunctNode}
+
+    def get_attrib(elem):
+        return {k: attribute_converters.get(k, str)(v)
+                for k, v in elem.find('attributes').items()}
+
+    def add_extra(obj, elem):
+        if elem.find('extra') is not None:
+            for k, v in elem.find('extra').items():
+                obj.extra[k] = extra_funcs.get(k, str)(v)
+
+    passage = core.Passage(root.get('passageID'), attrib=get_attrib(root))
+    add_extra(passage, root)
+    edge_elems = []
+    for layer_elem in root.findall('layer'):
+        layerID = layer_elem.get('layerID')
+        layer = layer_objs[layerID](passage, attrib=get_attrib(layer_elem))
+        add_extra(layer, layer_elem)
+        # some nodes are created automatically, skip creating them when found
+        # in the XML (they should have 'constant' IDs) but take their edges
+        # and attributes/extra from the XML (may have changed from the defualt)
+        created_nodes = {x.ID: x for x in layer.all}
+        for node_elem in layer_elem.findall('node'):
+            nodeID = node_elem.get('ID')
+            tag = node_elem.get('type')
+            node = (created_nodes[nodeID] if nodeID in created_nodes else
+                    node_objs[tag](root=passage, ID=nodeID, tag=tag,
+                                   attrib=get_attrib(node_elem)))
+            add_extra(node, node_elem)
+            edge_elems.extend((node, x) for x in node_elem.findall('edge'))
+
+    # Adding edges (must have all nodes before doing so)
+    for from_node, edge_elem in edge_elems:
+        to_node = passage.nodes[edge_elem.get('toID')]
+        tag = edge_elem.get('type')
+        edge = from_node.add(tag, to_node, edge_attrib=get_attrib(edge_elem))
+        add_extra(edge, edge_elem)
+
+    return passage

@@ -529,3 +529,8 @@ class ConversionTests(unittest.TestCase):
         ref = self._load_xml('./standard3.xml')
         root = convert.to_standard(passage)
         self.assertEqual(ETree.tostring(ref), ETree.tostring(root))
+
+    def test_from_standard(self):
+        passage = convert.from_standard(self._load_xml('./standard3.xml'))
+        ref = convert.from_site(self._load_xml('./site3.xml'))
+        self.assertTrue(passage.equals(ref, ordered=True))
