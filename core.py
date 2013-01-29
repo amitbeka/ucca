@@ -387,8 +387,7 @@ class Node:
         self._outgoing.sort(key=self._orderkey)
         node._incoming.append(edge)
         node._incoming.sort(key=node._orderkey)
-        if self.layer == node.layer:
-            self.layer._add_edge(edge)
+        self.root._add_edge(edge)
 
     @ModifyPassage
     def remove(self, edge_or_node):
@@ -418,8 +417,7 @@ class Node:
         try:
             self._outgoing.remove(edge)
             edge.child._incoming.remove(edge)
-            if self.layer == edge.child.layer:
-                self.layer._remove_edge(edge)
+            self.root._remove_edge(edge)
         except ValueError:
             raise MissingNodeError()
 
@@ -796,3 +794,12 @@ class Passage:
 
         """
         del self._nodes[node.ID]
+
+    @ModifyPassage
+    def _add_edge(self, edge):
+        if edge.parent.layer == edge.child.layer:
+            edge.parent.layer._add_edge(edge)
+
+    def _remove_edge(self, edge):
+        if edge.parent.layer == edge.child.layer:
+            edge.parent.layer._remove_edge(edge)
