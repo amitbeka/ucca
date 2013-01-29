@@ -376,6 +376,9 @@ class Node:
             edge_attrib: Keyword only, dictionary of attributes to be passed
                 to the Edge initializer.
 
+        Returns:
+            the newly created Edge object
+
         Raises:
             FrozenPassageError: if the :class:Passage object we are part of
                 is frozen and can't be modified.
@@ -388,6 +391,7 @@ class Node:
         node._incoming.append(edge)
         node._incoming.sort(key=node._orderkey)
         self.root._add_edge(edge)
+        return edge
 
     @ModifyPassage
     def remove(self, edge_or_node):
