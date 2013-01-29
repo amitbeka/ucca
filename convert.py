@@ -343,12 +343,12 @@ def to_standard(passage):
         add_attrib(layer, layer_elem)
         add_extra(layer, layer_elem)
         for node in layer.all:
-            node_elem = ET.SubElement(layer_elem, node.__class__.__name__,
+            node_elem = ET.SubElement(layer_elem, 'node',
                                       ID=node.ID, type=node.tag)
             add_attrib(node, node_elem)
             add_extra(node, node_elem)
             for edge in node:
-                edge_elem = ET.SubElement(node_elem, edge.__class__.__name__,
+                edge_elem = ET.SubElement(node_elem, 'edge',
                                           toID=edge.child.ID, type=edge.tag)
                 add_attrib(edge, edge_elem)
                 add_extra(edge, edge_elem)
