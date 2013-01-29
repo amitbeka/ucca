@@ -123,7 +123,7 @@ class ModifyPassage:
         def decorated(*args, **kwargs):
             if args[0].root.frozen:
                 raise FrozenPassageError()
-            self.fn(*args, **kwargs)
+            return self.fn(*args, **kwargs)
         return decorated(*args, **kwargs)
 
 
