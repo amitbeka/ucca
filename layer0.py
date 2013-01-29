@@ -101,8 +101,8 @@ class Layer0(core.Layer):
 
     """
 
-    def __init__(self, root):
-        return super().__init__(ID=LAYER_ID, root=root, attrib=None)
+    def __init__(self, root, attrib=None):
+        return super().__init__(ID=LAYER_ID, root=root, attrib=attrib)
 
     @property
     def words(self):

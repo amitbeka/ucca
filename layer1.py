@@ -304,8 +304,9 @@ class Layer1(core.Layer):
 
     """
 
-    def __init__(self, root, *, orderkey=core.id_orderkey):
-        super().__init__(ID=LAYER_ID, root=root, orderkey=orderkey)
+    def __init__(self, root, attrib=None, *, orderkey=core.id_orderkey):
+        super().__init__(ID=LAYER_ID, root=root, attrib=attrib,
+                         orderkey=orderkey)
         self._scenes = []
         self._linkages = []
         self._head_fnode = FoundationalNode(root=root,
