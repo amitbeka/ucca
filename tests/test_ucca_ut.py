@@ -4,7 +4,7 @@ import unittest
 import operator
 import xml.etree.ElementTree as ETree
 
-from ucca import core, layer0, layer1, convert
+from ucca import core, layer0, layer1, convert, util
 
 
 class CoreTests(unittest.TestCase):
@@ -534,3 +534,46 @@ class ConversionTests(unittest.TestCase):
         passage = convert.from_standard(self._load_xml('./standard3.xml'))
         ref = convert.from_site(self._load_xml('./site3.xml'))
         self.assertTrue(passage.equals(ref, ordered=True))
+
+
+class UtilTests(unittest.TestCase):
+    """Tests the util module functions and classes."""
+
+    def test_break2sentences(self):
+        """Tests identifying correctly sentence ends.
+
+        Passage: [1 2 [3 P] H] . [[5 6 . P] H]
+                 [[8 P] . 10 . H]
+
+        """
+        p = core.Passage('1')
+        l0 = layer0.Layer0(p)
+        l1 = layer1.Layer1(p)
+        terms = [l0.add_terminal(str(i), False) for i in range(1,4)]
+        terms.append(l0.add_terminal('.', True))
+        terms.append(l0.add_terminal('5', False))
+        terms.append(l0.add_terminal('6', False))
+        terms.append(l0.add_terminal('.', True))
+        terms.append(l0.add_terminal('8', False, paragraph=2))
+        terms.append(l0.add_terminal('.', True, paragraph=2))
+        terms.append(l0.add_terminal('10', False, paragraph=2))
+        terms.append(l0.add_terminal('.', True, paragraph=2))
+        h1 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        h2 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        h3 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        p1 = l1.add_fnode(h1, layer1.EdgeTags.Process)
+        p2 = l1.add_fnode(h2, layer1.EdgeTags.Process)
+        p3 = l1.add_fnode(h3, layer1.EdgeTags.Process)
+        h1.add(layer1.EdgeTags.Terminal, terms[0])
+        h1.add(layer1.EdgeTags.Terminal, terms[1])
+        p1.add(layer1.EdgeTags.Terminal, terms[2])
+        l1.add_punct(None, terms[3])
+        p2.add(layer1.EdgeTags.Terminal, terms[4])
+        p2.add(layer1.EdgeTags.Terminal, terms[5])
+        l1.add_punct(p2, terms[6])
+        p3.add(layer1.EdgeTags.Terminal, terms[7])
+        l1.add_punct(h3, terms[8])
+        h3.add(layer1.EdgeTags.Terminal, terms[9])
+        l1.add_punct(h3, terms[10])
+
+        self.assertSequenceEqual(util.break2sentences(p), [4, 7, 11])
