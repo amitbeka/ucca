@@ -91,7 +91,6 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(node22[2].ID, '2.2->1.3')
 
     def test_modifying(self):
-
         p = self._create_basic_passage()
         l1, l2 = p.layer('1'), p.layer('2')
         node11, node12, node13 = l1.all
