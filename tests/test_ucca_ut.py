@@ -599,3 +599,9 @@ class ScenesTests(unittest.TestCase):
         elem = ConversionTests._load_xml('./site3.xml')
         passage = convert.from_site(elem)
         scenes.extract_possible_scenes(passage)
+
+    def test_extract_head(self):
+        """Tests that the API isn't broken, not validity of the result."""
+        passage = Layer1Tests._create_passage()
+        for x in scenes.extract_possible_scenes(passage):
+            scenes.extract_head(x)

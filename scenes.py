@@ -31,3 +31,28 @@ def extract_possible_scenes(passage):
             if p.is_scene() or (len(p.centers) == 1 and p.elaborators):
                 ret.append(p)
     return ret
+
+
+def extract_head(fnode):
+    """Extracts the head of the FoundationalNode given.
+
+    The head is defined differently and recursively for scenes and non-scenes:
+        1. For non-scenes, the head is defined as the head of the only Center
+            (recursively). If there are multiple Centers, there is no head.
+        2. For scenes, the head is the head of the Process/State (recursively).
+        3. For Centers w/o further FoundationalNodes, the head is the Center
+            itself.
+
+    Returns:
+        A core.FoundationalNode object of the head, or None if there is no head
+
+    """
+    if fnode.is_scene():
+        return extract_head(fnode.process or fnode.state)
+    elif len(fnode.centers) == 1:
+        return extract_head(fnode.centers[0])
+    elif all(e.tag in (layer1.EdgeTags.Terminal, layer1.EdgeTags.Punctuation)
+             for e in fnode):
+        return fnode
+    else:
+        return None
