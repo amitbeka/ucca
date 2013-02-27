@@ -4,7 +4,7 @@ import unittest
 import operator
 import xml.etree.ElementTree as ETree
 
-from ucca import core, layer0, layer1, convert, util
+from ucca import core, layer0, layer1, convert, util, scenes
 
 
 class CoreTests(unittest.TestCase):
@@ -590,3 +590,12 @@ class UtilTests(unittest.TestCase):
         l1.add_punct(h3, terms[10])
 
         self.assertSequenceEqual(util.break2sentences(p), [4, 7, 11])
+
+
+class ScenesTests(unittest.TestCase):
+
+    def test_possible_scenes(self):
+        """Tests that the API isn't broken, not validity of the result."""
+        elem = ConversionTests._load_xml('./site3.xml')
+        passage = convert.from_site(elem)
+        scenes.extract_possible_scenes(passage)
