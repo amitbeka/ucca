@@ -184,6 +184,20 @@ class CoreTests(unittest.TestCase):
         p1l2 = core.Layer('2', p1)
         self.assertFalse(p1.equals(p2) or p2.equals(p1))
 
+    def test_copying(self):
+        # we don't need such a complex passage, but it will work anyway
+        p1 = Layer1Tests._create_passage()
+
+        p2 = p1.copy([])
+        self.assertEqual(p1.ID, p2.ID)
+        self.assertTrue(p1.attrib.equals(p2.attrib))
+        self.assertEqual(p1.extra, p2.extra)
+        self.assertEqual(p1.frozen, p2.frozen)
+
+        l0id = layer0.LAYER_ID
+        p2 = p1.copy([l0id])
+        self.assertTrue(p1.layer(l0id).equals(p2.layer(l0id)))
+
 
 class Layer0Tests(unittest.TestCase):
     """Tests module layer0 functionality."""

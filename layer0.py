@@ -145,6 +145,19 @@ class Layer0(core.Layer):
                                 'paragraph': paragraph,
                                 'paragraph_position': para_pos})
 
+    def copy(self, other_passage):
+        """Creates a copied Layer0 object and Terminals in other_passage.
+
+        Args:
+            other_passage: the Passage to copy self to
+
+        """
+        other = Layer0(root=other_passage, attrib=self.attrib.copy())
+        other.extra = self.extra.copy()
+        for t in self._all:
+            copied = other.add_terminal(t.text, t.punct, t.paragraph)
+            copied.extra = t.extra.copy()
+
 
 def is_punct(node):
     """Returns whether the unit is a layer0 punctuation (for all Units)."""

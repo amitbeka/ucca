@@ -75,6 +75,11 @@ class MissingNodeError(UCCAError):
     pass
 
 
+class UnimplementedMethodError(UCCAError):
+    """Exception raised when trying to call a not-yet-implemented method."""
+    pass
+
+
 class ModifyPassage:
     """Decorator for changing a :class:Passage or any member of it.
 
@@ -749,6 +754,34 @@ class Passage:
         except KeyError:  # no layer with same ID found
             return False
         return True
+
+    def copy(self, layers):
+        """Copies the Passage and specificied layers to a new object.
+
+        The main "building block" of copying is the Layer, so copying is
+        truly copying the Passage attributes (attrib, extra, ID, frozen)
+        and creating the equivalent layers (each layer for itself).
+
+        Args:
+            layers: sequence of layer IDs to copy to the new object.
+
+        Returns:
+            A new Passage object.
+
+        Raises:
+            KeyError if a given layer ID doesn't exist.
+            UnimplementedMethodError if copying for a layer is unimplemented.
+
+        """
+        other = Passage(ID=self.ID, attrib=self.attrib.copy())
+        other.extra = self.extra.copy()
+        for lid in layers:
+            try:
+                self.layer(lid).copy(other)
+            except AttributeError:
+                raise UnimplementedMethodError()
+        other.frozen = self.frozen
+        return other
 
     @ModifyPassage
     def _add_layer(self, layer):
