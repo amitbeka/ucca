@@ -2,9 +2,10 @@
 
 import unittest
 import operator
+import pickle
 import xml.etree.ElementTree as ETree
 
-from ucca import core, layer0, layer1, convert, util, scenes
+from ucca import core, layer0, layer1, convert, util, scenes, collins
 
 
 class CoreTests(unittest.TestCase):
@@ -605,3 +606,16 @@ class ScenesTests(unittest.TestCase):
         passage = Layer1Tests._create_passage()
         for x in scenes.extract_possible_scenes(passage):
             scenes.extract_head(x)
+
+
+class CollinsTests(unittest.TestCase):
+
+    def test_basic_usage(self):
+        with open("./collins-sample.pickle", "rb") as f:
+            raw_dict = pickle.load(f)
+        coldict = collins.CollinsDictionary(raw_dict)
+        self.assertSequenceEqual(coldict.by_key('aaaaaa'), [])
+        self.assertEqual(len(coldict.by_key('apart')), 2)
+        self.assertEqual(len(coldict.by_form('droughts')), 1)
+        self.assertEqual(len(coldict.by_form('drove')), 2)
+        self.assertEqual(len(coldict.by_stem('abort')), 3)
