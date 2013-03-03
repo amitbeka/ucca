@@ -5,7 +5,7 @@ import operator
 import pickle
 import xml.etree.ElementTree as ETree
 
-from ucca import core, layer0, layer1, convert, util, scenes, collins
+from ucca import core, layer0, layer1, convert, util, scenes, collins, lex
 
 
 class CoreTests(unittest.TestCase):
@@ -619,3 +619,20 @@ class CollinsTests(unittest.TestCase):
         self.assertEqual(len(coldict.by_form('droughts')), 1)
         self.assertEqual(len(coldict.by_form('drove')), 2)
         self.assertEqual(len(coldict.by_stem('abort')), 3)
+
+
+class LexTests(unittest.TestCase):
+
+    def test_dixon(self):
+        with open("./dixon-verbs.xml") as f:
+            root = ETree.ElementTree().parse(f)
+        dixon = lex.DixonVerbs(root)
+        self.assertSequenceEqual(dixon.by_phrase('get'),
+                                 ['Primary-A:GIVING:OWN',
+                                  'Secondary-C:MAKING:MAIN'])
+        self.assertDictEqual(dixon.by_verb('get'),
+                             {'get to': ['Secondary-A:SEMI-MODAL:MAIN'],
+                              'get': ['Primary-A:GIVING:OWN',
+                                      'Secondary-C:MAKING:MAIN']})
+        self.assertDictEqual(dixon.by_stem('hurri'),
+                             {'hurry': ['Secondary-A:HURRYING:MAIN']})
