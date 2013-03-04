@@ -1,7 +1,10 @@
 """Contains lexical-related methods and classes."""
 
 import nltk
+import pickle
 import xml.etree.ElementTree as ETree
+
+from . import collins
 
 
 class DixonVerbs:
@@ -67,3 +70,22 @@ class DixonVerbs:
         st = nltk.stem.snowball.EnglishStemmer()
         return {k: v for k, v in self._verbs.items()
                 if stem in st.stem(k).split()}
+
+
+class DixonIdentifier:
+
+    def __init__(self, dixon_path, collins_path):
+        with open(dixon_path) as f:
+            self.dixon = DixonVerbs(ETree.ElementTree().parse(f))
+        with open(collins_path, 'rb') as f:
+            self.collins = collins.CollinsDictionary(pickle.load(f))
+        self.stemmer = nltk.stem.snowball.EnglishStemmer()
+
+    def get_categories(self, scene, head):
+        try:
+            text = head.to_text()
+            base_form = self.collins.by_form(text)[0].key
+            stem = self.stemmer.stem(base_form)
+            return self.dixon.by_stem(stem)
+        except:
+            print("NOT FOUND ({})".format(text))
