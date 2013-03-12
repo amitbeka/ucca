@@ -1,6 +1,6 @@
 """Identifies and categorizes words according to Dixon's verb list."""
 
-import sys
+import argparse
 import xml.etree.ElementTree as ETree
 
 from ucca import lex, convert, scenes
@@ -8,10 +8,19 @@ from ucca import lex, convert, scenes
 
 def main():
     """Runs DixonIdentifier and gathers statistics."""
-    eng = lex.DixonIdentifier(
-        '/home/beka/thesis/resources/dixon-verbs.xml',
-        '/home/beka/thesis/resources/collins/collins.pickle')
-    for path in sys.argv[1:]:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('filename', nargs='*',
+                        help="Site XML files to operate on")
+    parser.add_argument('-v', '--verbs',
+                        default='/home/beka/thesis/resources/dixon-verbs.xml',
+                        help="Dixon's verb categories in XML file")
+    parser.add_argument('-c', '--collins',
+                default='/home/beka/thesis/resources/collins/collins.pickle',
+                help="Collins parsed dictionary in pickle file")
+
+    args = parser.parse_args()
+    eng = lex.DixonIdentifier(args.verbs, args.collins)
+    for path in args.filename:
         run_file(path, eng)
 
 
