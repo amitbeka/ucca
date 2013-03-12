@@ -563,7 +563,7 @@ class UtilTests(unittest.TestCase):
         p = core.Passage('1')
         l0 = layer0.Layer0(p)
         l1 = layer1.Layer1(p)
-        terms = [l0.add_terminal(str(i), False) for i in range(1,4)]
+        terms = [l0.add_terminal(str(i), False) for i in range(1, 4)]
         terms.append(l0.add_terminal('.', True))
         terms.append(l0.add_terminal('5', False))
         terms.append(l0.add_terminal('6', False))
