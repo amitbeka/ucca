@@ -409,6 +409,15 @@ class Layer1Tests(unittest.TestCase):
         self.assertSequenceEqual(l1.top_scenes, [ps1, ps23])
         self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
 
+    def test_str(self):
+        p = self._create_passage()
+        self.assertSequenceEqual([str(x) for x in p.layer('1').heads],
+                                 ['[L 1] [H [P 2 3 4 5] [A 6 7 8 9] [U 10]  '
+                                  '... [A* 15] ] [H [H [P* 2 3 4 5] [A 11 12 '
+                                  '13 14] [D 15] ] [L 16] [H  [A IMPLICIT][S '
+                                  '17 18] [A 19] ] ] [U 20] ',
+                                  '1.2-->1.3', '1.11-->1.8,1.12'])
+
 
 class ConversionTests(unittest.TestCase):
     """Tests convert module correctness and API."""

@@ -121,6 +121,9 @@ class PunctNode(core.Node):
     def end_position(self):
         return self.children[-1].position
 
+    def __str__(self):
+        return ' '.join(str(x) for x in self.terminals)
+
 
 class Linkage(core.Node):
     """A Linkage between parallel scenes.
@@ -146,6 +149,10 @@ class Linkage(core.Node):
     @property
     def arguments(self):
         return _multiple_children_by_tag(self, EdgeTags.LinkArgument)
+
+    def __str__(self):
+        return "{}-->{}".format(str(self.relation.ID),
+                                ','.join(x.ID for x in self.arguments))
 
 
 class FoundationalNode(core.Node):
@@ -309,6 +316,29 @@ class FoundationalNode(core.Node):
 
     def is_scene(self):
         return (self.state is not None or self.process is not None)
+
+    def __str__(self):
+        if all(e.tag == EdgeTags.Terminal for e in self):
+            return ' '.join(str(t) for t in self.children)
+        sorted_edges = sorted(list(self),
+                              key=lambda x: x.child.start_position)
+        output = ''
+        for i, edge in enumerate(sorted_edges):
+            node = edge.child
+            edge_tag = edge.tag
+            if edge.attrib.get('remote'):
+                edge_tag = edge_tag + '*'
+            if edge.attrib.get('uncertain'):
+                edge_tag = edge_tag + '?'
+            if node.start_position == -1:
+                output += " [{} IMPLICIT]".format(edge_tag)
+            else:
+                output += "[{} {}] ".format(edge_tag, str(node))
+                if (not edge.attrib.get('remote') and i + 1 < len(sorted_edges)
+                    and node.end_position + 1 <
+                        sorted_edges[i + 1].child.start_position):
+                    output += " ... "  # adding '...' if discontiguous
+        return output
 
 
 class Layer1(core.Layer):
