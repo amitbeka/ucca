@@ -6,6 +6,14 @@ import xml.etree.ElementTree as ETree
 from ucca import lex, convert, scenes
 
 
+class Stats:
+    def __init__(self):
+        self.heads = []
+        self.lemmas = []
+        self.no_cats = []
+        self.fulls = []
+
+
 def main():
     """Runs DixonIdentifier and gathers statistics."""
     parser = argparse.ArgumentParser()
@@ -20,11 +28,24 @@ def main():
 
     args = parser.parse_args()
     eng = lex.DixonIdentifier(args.verbs, args.collins)
+    stats = Stats()
     for path in args.filename:
-        run_file(path, eng)
+        run_file(path, eng, stats)
+    print('=== NO HEADS ({}) ==='.format(len(stats.heads)))
+    for s in stats.heads:
+        print(str(s))
+    print('=== LEMMAS ({}) ==='.format(len(stats.lemmas)))
+    for s, h in stats.lemmas:
+        print("{}\t{}".format(str(h), str(s)))
+    print('=== NO CATEGORIES ({}) ==='.format(len(stats.no_cats)))
+    for s, h in stats.no_cats:
+        print("{}\t{}".format(str(h), str(s)))
+    print('=== FULLS ({}) ==='.format(len(stats.fulls)))
+    for s, h, cat in stats.fulls:
+        print('\t'.join([str(h), str(s), str(cat)]))
 
 
-def run_file(path, eng):
+def run_file(path, eng, stats):
     """Site XML file ==> prints list of sceneness results"""
     with open(path) as f:
         root = ETree.ElementTree().parse(f)
@@ -34,12 +55,18 @@ def run_file(path, eng):
     heads = [scenes.extract_head(x) for x in sc]
 
     for s, h in zip(sc, heads):
-        print("Scene: " + s.to_text())
         if h is None:
-            print("Head: None")
+            stats.heads.append(s)
             continue
-        print("Head: " + h.to_text())
-        print("Categories: " + str(eng.get_categories(s, h)))
+        cat = eng.get_categories(s, h)
+        if cat == 'implicit':
+            stats.heads.append(s)
+        elif cat == 'no base form':
+            stats.lemmas.append((s, h))
+        elif cat:
+            stats.fulls.append((s, h, cat))
+        else:
+            stats.no_cats.append((s, h))
 
 
 if __name__ == '__main__':

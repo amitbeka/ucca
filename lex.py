@@ -82,10 +82,12 @@ class DixonIdentifier:
         self.stemmer = nltk.stem.snowball.EnglishStemmer()
 
     def get_categories(self, scene, head):
-        try:
-            text = head.to_text()
-            base_form = self.collins.by_form(text)[0].key
-            stem = self.stemmer.stem(base_form)
-            return self.dixon.by_stem(stem)
-        except:
-            print("NOT FOUND ({})".format(text))
+        if head.attrib.get('implicit'):
+            return 'implicit'
+        text = head.to_text()
+        base_form = self.collins.by_form(text)
+        if not base_form:
+            return 'no base form'
+        base_form = base_form[0].key
+        stem = self.stemmer.stem(base_form)
+        return self.dixon.by_stem(stem)
