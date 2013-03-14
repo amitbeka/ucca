@@ -102,12 +102,24 @@ class PunctNode(core.Node):
     Attributes:
         terminals: return the :class:layer0.Terminal objects encapsulated
             by this Node in a list (at least one, usually not more than 1).
+        start_position:
+        end_position:
+            start/end position of the first/last terminal in the span of
+            the PunctNode.
 
     """
 
     @property
     def terminals(self):
         return self.children
+
+    @property
+    def start_position(self):
+        return self.children[0].position
+
+    @property
+    def end_position(self):
+        return self.children[-1].position
 
 
 class Linkage(core.Node):
