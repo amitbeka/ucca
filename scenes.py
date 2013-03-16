@@ -15,6 +15,7 @@ def extract_possible_scenes(passage):
         1. It is a Participant of a main relation (Process/State)
         2. It is a scene, or it has one Center (exactly) and at least one
             Elaborator
+        3. It is not a remote participant
 
     Args:
         passage: the core.Passage object to extract optional scenes from
@@ -27,7 +28,9 @@ def extract_possible_scenes(passage):
     ret = []
     for scene in (x for x in l1.all if x.tag == layer1.NodeTags.Foundational
                   and x.is_scene()):
-        for p in scene.participants:
+        for p in (e.child for e in scene
+                  if e.tag == layer1.EdgeTags.Participant and
+                  not e.attrib.get('remote')):
             if p.is_scene() or (len(p.centers) == 1 and p.elaborators):
                 ret.append(p)
     return ret
