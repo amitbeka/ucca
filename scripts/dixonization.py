@@ -25,9 +25,12 @@ def main():
     parser.add_argument('-c', '--collins',
                 default='/home/beka/thesis/resources/collins/collins.pickle',
                 help="Collins parsed dictionary in pickle file")
+    parser.add_argument('-w', '--wiktionary',
+            default='/home/beka/thesis/resources/enwikt-defs-latest-en.tsv',
+            help="Wiktionary definitions only in tab-separated format")
 
     args = parser.parse_args()
-    eng = lex.DixonIdentifier(args.verbs, args.collins)
+    eng = lex.DixonIdentifier(args.verbs, args.collins, args.wiktionary)
     stats = Stats()
     for path in args.filename:
         run_file(path, eng, stats)

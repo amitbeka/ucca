@@ -4,7 +4,7 @@ import nltk
 import pickle
 import xml.etree.ElementTree as ETree
 
-from . import collins
+from . import collins, wikt
 
 
 class DixonVerbs:
@@ -74,11 +74,14 @@ class DixonVerbs:
 
 class DixonIdentifier:
 
-    def __init__(self, dixon_path, collins_path):
+    def __init__(self, dixon_path, collins_path, wikt_path):
         with open(dixon_path) as f:
             self.dixon = DixonVerbs(ETree.ElementTree().parse(f))
         with open(collins_path, 'rb') as f:
             self.collins = collins.CollinsDictionary(pickle.load(f))
+        with open(wikt_path) as f:
+            raw_defs = f.read().split('\n')[:-1]  # last line is empty
+            self.wikt = wikt.WiktLemmatizer(raw_defs)
         self.stemmer = nltk.stem.snowball.EnglishStemmer()
 
     def get_categories(self, scene, head):
@@ -87,7 +90,11 @@ class DixonIdentifier:
         text = head.to_text()
         base_form = self.collins.by_form(text)
         if not base_form:
-            return 'no base form'
-        base_form = base_form[0].key
+            try:
+                base_form = self.wikt.lemmatize(text)
+            except wikt.LemmaNotFound:
+                return 'no base form'
+        else:
+            base_form = base_form[0].key
         stem = self.stemmer.stem(base_form)
         return (base_form, stem, self.dixon.by_stem(stem))
