@@ -31,6 +31,10 @@ def main():
     stats = Stats()
     for path in args.filename:
         run_file(path, eng, stats)
+    stats.heads.sort(key=str)  # by scene
+    stats.lemmas.sort(key=lambda x: str(x[1]))  # by head
+    stats.no_cats.sort(key=lambda x: str(x[1]))  # by head
+    stats.fulls.sort(key=lambda x: str(x[2]))  # by category
     print('=== NO HEADS ({}) ==='.format(len(stats.heads)))
     for s in stats.heads:
         print(str(s))
