@@ -90,4 +90,4 @@ class DixonIdentifier:
             return 'no base form'
         base_form = base_form[0].key
         stem = self.stemmer.stem(base_form)
-        return self.dixon.by_stem(stem)
+        return (base_form, stem, self.dixon.by_stem(stem))

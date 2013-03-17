@@ -34,7 +34,7 @@ def main():
     stats.heads.sort(key=str)  # by scene
     stats.lemmas.sort(key=lambda x: str(x[1]))  # by head
     stats.no_cats.sort(key=lambda x: str(x[1]))  # by head
-    stats.fulls.sort(key=lambda x: str(x[2]))  # by category
+    stats.fulls.sort(key=lambda x: str(x[-1]))  # by category
     print('=== NO HEADS ({}) ==='.format(len(stats.heads)))
     for s in stats.heads:
         print(str(s))
@@ -42,11 +42,11 @@ def main():
     for s, h in stats.lemmas:
         print("{}\t{}".format(str(h), str(s)))
     print('=== NO CATEGORIES ({}) ==='.format(len(stats.no_cats)))
-    for s, h in stats.no_cats:
-        print("{}\t{}".format(str(h), str(s)))
+    for out in stats.no_cats:
+        print('\t'.join([str(x) for x in out]))
     print('=== FULLS ({}) ==='.format(len(stats.fulls)))
-    for s, h, cat in stats.fulls:
-        print('\t'.join([str(h), str(s), str(cat)]))
+    for out in stats.fulls:
+        print('\t'.join([str(x) for x in out]))
 
 
 def run_file(path, eng, stats):
@@ -62,15 +62,15 @@ def run_file(path, eng, stats):
         if h is None:
             stats.heads.append(s)
             continue
-        cat = eng.get_categories(s, h)
-        if cat == 'implicit':
+        out = eng.get_categories(s, h)
+        if out == 'implicit':
             stats.heads.append(s)
-        elif cat == 'no base form':
+        elif out == 'no base form':
             stats.lemmas.append((s, h))
-        elif cat:
-            stats.fulls.append((s, h, cat))
+        elif out[2]:
+            stats.fulls.append((s, h) + out)
         else:
-            stats.no_cats.append((s, h))
+            stats.no_cats.append((s, h) + out)
 
 
 if __name__ == '__main__':
