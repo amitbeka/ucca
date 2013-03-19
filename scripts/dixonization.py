@@ -6,6 +6,25 @@ import xml.etree.ElementTree as ETree
 from ucca import lex, convert, scenes
 
 
+class Result:
+    def __init__(self, main_unit, head=None, lemma=None, stem=None, cat=None):
+        self.main_unit = main_unit
+        self.is_scene = main_unit.is_scene()
+        self.head = head
+        self.lemma = lemma
+        self.stem = stem
+        self.categories = {} if cat is None else cat
+        self.main_cat = [(k, v) for k, v in self.categories.items()
+                             if len(k) == min(len(k) for k in self.categories)]
+
+    def __str__(self):
+        return ("Unit: ({}) {}\nHead: {} ==> "
+                "{} ==> {}\nCategories: {} {}".format(
+                    ("SC" if self.is_scene else "NS"), self.main_unit,
+                    self.head, self.lemma, self.stem, self.main_cat,
+                    self.categories))
+
+
 class Stats:
     def __init__(self):
         self.heads = []
@@ -34,22 +53,15 @@ def main():
     stats = Stats()
     for path in args.filename:
         run_file(path, eng, stats)
-    stats.heads.sort(key=str)  # by scene
-    stats.lemmas.sort(key=lambda x: str(x[1]))  # by head
-    stats.no_cats.sort(key=lambda x: str(x[1]))  # by head
-    stats.fulls.sort(key=lambda x: str(x[-1]))  # by category
-    print('=== NO HEADS ({}) ==='.format(len(stats.heads)))
-    for s in stats.heads:
-        print(str(s))
-    print('=== LEMMAS ({}) ==='.format(len(stats.lemmas)))
-    for s, h in stats.lemmas:
-        print("{}\t{}".format(str(h), str(s)))
-    print('=== NO CATEGORIES ({}) ==='.format(len(stats.no_cats)))
-    for out in stats.no_cats:
-        print('\t'.join([str(x) for x in out]))
-    print('=== FULLS ({}) ==='.format(len(stats.fulls)))
-    for out in stats.fulls:
-        print('\t'.join([str(x) for x in out]))
+    stats.heads.sort(key=lambda x: str(x.main_unit))
+    stats.lemmas.sort(key=lambda x: str(x.head))
+    stats.no_cats.sort(key=lambda x: str(x.head))
+    stats.fulls.sort(key=lambda x: str(x.main_cat))
+    for name, results in [('HEADS', stats.heads), ('LEMMAS', stats.lemmas),
+                          ('EMPTY', stats.no_cats), ('FULLS', stats.fulls)]:
+        print('=== {} ({}) ==='.format(name, len(results)))
+        for result in results:
+            print(str(result))
 
 
 def run_file(path, eng, stats):
@@ -63,17 +75,17 @@ def run_file(path, eng, stats):
 
     for s, h in zip(sc, heads):
         if h is None:
-            stats.heads.append(s)
+            stats.heads.append(Result(s))
             continue
         out = eng.get_categories(s, h)
         if out == 'implicit':
-            stats.heads.append(s)
+            stats.heads.append(Result(s))
         elif out == 'no base form':
-            stats.lemmas.append((s, h))
+            stats.lemmas.append(Result(s, h))
         elif out[2]:
-            stats.fulls.append((s, h) + out)
+            stats.fulls.append(Result(s, h, *out))
         else:
-            stats.no_cats.append((s, h) + out)
+            stats.no_cats.append(Result(s, h, *out))
 
 
 if __name__ == '__main__':
