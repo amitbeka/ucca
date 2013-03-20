@@ -15,7 +15,7 @@ class Result:
         self.stem = stem
         self.categories = {} if cat is None else cat
         self.main_cat = [(k, v) for k, v in self.categories.items()
-                             if len(k) == min(len(k) for k in self.categories)]
+                         if len(k) == min(len(k) for k in self.categories)]
 
     def __str__(self):
         return ("Unit: ({}) {}\nHead: {} ==> "
@@ -31,6 +31,18 @@ class Stats:
         self.lemmas = []
         self.no_cats = []
         self.fulls = []
+        self.lemma_count = {}
+        self.cat_count = {}
+
+    def update_counts(self):
+        self.lemma_counts = {}
+        self.cat_counts = {}
+        for result in self.no_cats:
+            self.lemma_count[result.lemma] = self.lemma_count.get(result.lemma,
+                                                                  0) + 1
+        for result in self.fulls:
+            self.cat_count[str(result.main_cat[0][1][0])] = self.cat_count.get(
+                str(result.main_cat[0][1][0]), 0) + 1
 
 
 def main():
@@ -57,11 +69,16 @@ def main():
     stats.lemmas.sort(key=lambda x: str(x.head))
     stats.no_cats.sort(key=lambda x: str(x.head))
     stats.fulls.sort(key=lambda x: str(x.main_cat))
+    stats.update_counts()
     for name, results in [('HEADS', stats.heads), ('LEMMAS', stats.lemmas),
                           ('EMPTY', stats.no_cats), ('FULLS', stats.fulls)]:
         print('=== {} ({}) ==='.format(name, len(results)))
         for result in results:
             print(str(result))
+    print('=== COUNTS ===')
+    for name, count in (sorted((y, x) for x, y in stats.lemma_count.items()) +
+                        sorted((y, x) for x, y in stats.cat_count.items())):
+        print("{}\t{}".format(name, count))
 
 
 def run_file(path, eng, stats):
