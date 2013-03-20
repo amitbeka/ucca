@@ -89,11 +89,22 @@ class DixonIdentifier:
             return 'implicit'
         text = head.to_text()
         base_form = self.collins.by_form(text)
+        # For both lemmatizers, we try to lowercase the first letter if it's
+        # the only upper letter, because this can be a start-of-sentence
+        # capitalization
+        if not base_form and text.istitle():
+            base_form = self.collins.by_form(text.lower())
         if not base_form:
             try:
                 base_form = self.wikt.lemmatize(text)
             except wikt.LemmaNotFound:
-                return 'no base form'
+                if text.istitle():
+                    try:
+                        base_form = self.wikt.lemmatize(text.lower())
+                    except wikt.LemmaNotFound:
+                        return 'no base form'
+                else:
+                    return 'no base form'
         else:
             base_form = base_form[0].key
         stem = self.stemmer.stem(base_form)
