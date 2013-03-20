@@ -13,9 +13,11 @@ def extract_possible_scenes(passage):
 
     Possible scenes are currently units which follow these restrictions:
         1. It is a Participant of a main relation (Process/State)
-        2. It is a scene, or it has one Center (exactly) and at least one
-            Elaborator
-        3. It is not a remote participant
+        2. It is not a remote participant
+        If so, add the participant of it if has only one center and at least
+        one elaborator, or add all centers otherwise.
+        In addition, add all elaborators which have more than one child (less
+        likely to have one-terminal elaborators as elaborating scenes).
 
     Args:
         passage: the core.Passage object to extract optional scenes from
@@ -33,6 +35,9 @@ def extract_possible_scenes(passage):
                   not e.attrib.get('remote')):
             if p.is_scene() or (len(p.centers) == 1 and p.elaborators):
                 ret.append(p)
+            else:  # if there are more than one center, add all of them
+                ret.extend(c for c in p.centers)
+            ret.extend(e for e in p.elaborators if len(e) > 1)
     return ret
 
 
