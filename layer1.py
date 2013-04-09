@@ -473,7 +473,7 @@ class Layer1(core.Layer):
         """
         if not node.is_scene():
             return False
-        while node.fparent is not self._head_fnode:
+        while node.fparent not in (None, self._head_fnode):
             node = node.fparent
             if node.is_scene():
                 return False
