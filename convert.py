@@ -14,7 +14,7 @@ import operator
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
-from . import core, layer0, layer1
+from ucca import core, layer0, layer1
 
 
 class SiteXMLUnknownElement(core.UCCAError):

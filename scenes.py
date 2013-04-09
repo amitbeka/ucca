@@ -5,7 +5,7 @@ in the foundational layer of UCCA.
 
 """
 
-from . import layer1
+from ucca import layer1
 
 
 def extract_possible_scenes(passage):

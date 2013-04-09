@@ -4,7 +4,7 @@ import nltk
 import pickle
 import xml.etree.ElementTree as ETree
 
-from . import collins, wikt
+from ucca import collins, wikt
 
 
 class DixonVerbs:

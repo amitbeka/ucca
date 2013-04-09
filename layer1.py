@@ -10,7 +10,7 @@ the type of relation between the Nodes.
 
 import operator
 
-from . import core
+from ucca import core
 
 
 # Layer ID
