@@ -112,6 +112,21 @@ class Layer0(core.Layer):
     def pairs(self):
         return tuple(zip(range(1, len(self.all) + 1), self._all))
 
+    def by_position(self, pos):
+        """Returns the Terminals at the position given.
+
+        Args:
+            pos: the position of the Terminal object
+
+        Returns:
+            the Terminal in this position
+
+        Raises:
+            IndexError if the position is out of bounds
+
+        """
+        return self._all(pos - 1)  # positions start at 1, not 0
+
     def add_terminal(self, text, punct, paragraph=1):
         """Adds the next Terminal at the next available position.
 
