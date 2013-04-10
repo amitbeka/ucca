@@ -11,6 +11,8 @@ The possible other formats are:
 """
 
 import operator
+import re
+import string
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
@@ -412,3 +414,25 @@ def from_standard(root, extra_funcs={}):
         add_extra(edge, edge_elem)
 
     return passage
+
+
+def from_text(text, passage_id='1'):
+    """Converts from tokenized strings to a Passage object.
+
+    Args:
+        text: a sequence of strings, where each one will be a new paragraph.
+
+    Returns:
+        a Passage object with only Terminals units.
+
+    """
+    p = core.Passage(passage_id)
+    l0 = layer0.Layer0(p)
+    punct = re.compile('^[{}]+$'.format(string.punctuation))
+
+    for i, par in enumerate(text):
+        for token in par.split():
+            # i is paragraph index, but it starts with 0, so we need to add +1
+            l0.add_terminal(text=token, punct=punct.match(token),
+                            paragraph=(i + 1))
+    return p

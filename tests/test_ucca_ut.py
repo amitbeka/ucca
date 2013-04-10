@@ -558,6 +558,17 @@ class ConversionTests(unittest.TestCase):
         ref = convert.from_site(self._load_xml('./site3.xml'))
         self.assertTrue(passage.equals(ref, ordered=True))
 
+    def test_from_text(self):
+        sample = ['Hello . again', 'nice', ' ?! end', '']
+        passage = convert.from_text(sample)
+        terms = passage.layer(layer0.LAYER_ID).all
+        pos = 0
+        for i, par in enumerate(sample):
+            for text in par.split():
+                self.assertTrue(terms[pos].text == text and
+                                terms[pos].paragraph == i + 1)
+                pos += 1
+
 
 class UtilTests(unittest.TestCase):
     """Tests the util module functions and classes."""
