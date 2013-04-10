@@ -296,6 +296,8 @@ class Node:
         extra: temporary storage space for undocumented attribues and data
         tag: the string label of the Node
         layer: the Layer this Node belongs to
+        incoming: a copy of the incoming Edges to this object
+        outgoing: a copy of the outgoing Edges from this object
         parents: the Nodes which have incoming Edges to this object
         children: the Nodes which have outgoing Edges from this object
         orderkey: the key function for ordering the outgoing Edges
@@ -352,6 +354,14 @@ class Node:
     @property
     def layer(self):
         return self._root.layer(self._ID.split(Node.ID_SEPARATOR)[0])
+
+    @property
+    def incoming(self):
+        return tuple(self._incoming)
+
+    @property
+    def outgoing(self):
+        return tuple(self._outgoing)
 
     @property
     def parents(self):

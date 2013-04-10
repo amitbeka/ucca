@@ -263,7 +263,7 @@ class FoundationalNode(core.Node):
 
     @property
     def fparent(self):
-        for edge in self._incoming:
+        for edge in self.incoming:
             if (edge.parent.layer.ID == LAYER_ID and
                 edge.parent.tag == NodeTags.Foundational and
                 not edge.attrib.get('remote')):
