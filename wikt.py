@@ -12,9 +12,20 @@ class LemmaNotFound(UCCAError):
     pass
 
 
-class WiktLemmatizer:
-    """Represents a lemmatizer based on wiktionary's inflected entries.
+class WiktEntry:
+    """Represents an entry of a phrase, with its POS, definition and lemma."""
 
+    def __init__(self, phrase, pos, defn, lemma):
+        self.phrase = phrase
+        self.pos = pos
+        self.defn = defn
+        self.lemma = lemma
+
+
+class Wiktionary:
+    """Wiktionary object which provides lemmas and definitions.
+
+    For lemmatization, we use the structure of wiktionary definitions.
     On English wiktionary (and others) all inflected/transformed or alternative
     forms of a word in general receive their own entry, whose definition is
     a template of the kind {{X of|Y}}, e.g. {{abbreviation of|et cetera}}.
@@ -34,28 +45,25 @@ class WiktLemmatizer:
     _pattern = r'{{([^|}]+) of\|([^|}]+)\|?.*?}}'
 
     def __init__(self, raw):
-        """Initializes a wiktionary lemmatizer object from raw entries.
+        """Initializes a wiktionary object from raw entries.
 
         Args:
             raw: a list of wiktionary entries, given as tab-separated strings
                 of language (ignored), phrase, Part-of-speech and definition.
 
         """
-        self._mapping = {}
+        self._entries = {}
         for line in raw:
             _, phrase, pos, defn = line.split('\t')
-            match = re.search(WiktLemmatizer._pattern, defn)
+            match = re.search(Wiktionary._pattern, defn)
             if match is None:
-                if self._mapping.get(phrase):
-                    self._mapping[phrase].add((pos, phrase))
-                else:
-                    self._mapping[phrase] = {(pos, phrase)}
+                lemma = phrase
             else:
-                orig = match.group(2)
-                if self._mapping.get(phrase):
-                    self._mapping[phrase].add((pos, orig))
-                else:
-                    self._mapping[phrase] = {(pos, orig)}
+                lemma = match.group(2)
+                if lemma.startswith('[[') and lemma.endswith(']]'):
+                    lemma = lemma[2:-2]  # removing wikilink markup
+            self._entries[phrase] = self._entries.get(phrase, []) + [WiktEntry(
+                phrase, pos, defn, lemma)]
 
     def lemmatize(self, phrase, pos=None):
         """Lemmatizes the phrase and returns the lemmatized string.
@@ -75,17 +83,20 @@ class WiktLemmatizer:
             the POS given (isn't raised when pos is None).
 
         """
-        if phrase not in self._mapping:
+        if phrase not in self._entries:
             raise LemmaNotFound()
+        # Phrase ==> possible lemmas ==> entries for these lemmas
+        entries = []
+        for orig_entry in self._entries[phrase]:
+            entries.extend(self._entries[orig_entry.lemma])
         if pos is None:
-            return sorted(self._mapping[phrase], key=lambda x: len(x[1]))[0][1]
+            return sorted(entries, key=lambda x: len(x.phrase))[0].lemma
         else:
-            lemmas = [lemma for lpos, lemma in self._mapping[phrase]
-                      if lpos == pos]
+            lemmas = {e.lemma for e in entries if e.pos == pos}
             if len(lemmas) == 0:
                 raise LemmaNotFound
             elif len(lemmas) == 1:
-                return lemmas[0]
+                return lemmas.pop()
             else:
                 raise MultipleLemmasError
 
@@ -100,4 +111,4 @@ class WiktLemmatizer:
             lemmatizations of the phrase. Can be empty.
 
         """
-        return self._mapping.get(phrase, set())
+        return {e.lemma for e in self._entries[phrase]}

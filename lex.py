@@ -81,7 +81,7 @@ class DixonIdentifier:
             self.collins = collins.CollinsDictionary(pickle.load(f))
         with open(wikt_path) as f:
             raw_defs = f.read().split('\n')[:-1]  # last line is empty
-            self.wikt = wikt.WiktLemmatizer(raw_defs)
+            self.wikt = wikt.Wiktionary(raw_defs)
         self.stemmer = nltk.stem.snowball.EnglishStemmer()
 
     def get_categories(self, scene, head):
