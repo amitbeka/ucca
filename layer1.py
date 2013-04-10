@@ -202,6 +202,8 @@ class FoundationalNode(core.Node):
         fparent: the FNode parent (FNode with incoming Edge, not remote) of
             this FNode. There is exactly one for each FNode except the Passage
             head, which returns None.
+        ftag: the tag of the Edge connecting the fparent (as described above)
+            with this FNode
 
     """
 
@@ -261,14 +263,24 @@ class FoundationalNode(core.Node):
     def relator(self):
         return _single_child_by_tag(self, EdgeTags.Relator, False)
 
-    @property
-    def fparent(self):
+    def _fedge(self):
+        """Returns the Edge of the fparent, or None."""
         for edge in self.incoming:
             if (edge.parent.layer.ID == LAYER_ID and
                 edge.parent.tag == NodeTags.Foundational and
                 not edge.attrib.get('remote')):
-                return edge.parent
+                return edge
         return None
+
+    @property
+    def fparent(self):
+        edge = self._fedge()
+        return edge.parent if edge else None
+
+    @property
+    def ftag(self):
+        edge = self._fedge()
+        return edge.tag if edge else None
 
     def get_terminals(self, punct=True, remotes=False):
         """Returns a list of all terminals under the span of this FNode.
