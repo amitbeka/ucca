@@ -793,6 +793,21 @@ class Passage:
         other.frozen = self.frozen
         return other
 
+    def by_id(self, ID):
+        """Returns a Node whose ID is given.
+
+        Args:
+            ID: ID string
+
+        Returns:
+            The node.Node object whose ID matches
+
+        Raises:
+            KeyError if no Node with this ID is found
+
+        """
+        return self._nodes[ID]
+
     @ModifyPassage
     def _add_layer(self, layer):
         """Adds a :class:Layer object to the :class:Passage.
