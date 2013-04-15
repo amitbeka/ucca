@@ -2,6 +2,7 @@ import argparse
 import xml.etree.ElementTree as ETree
 
 from ucca import lex, convert
+from ucca.postags import POSTags
 
 
 def main():
@@ -44,7 +45,14 @@ def run_file(path, eng):
     words = [x.text for x in passage.layer('0').words]
     print(' '.join(words))
     for word in words:
-        print(eng.get_forms(word))
+        all_tagsets = eng.get_forms(word)
+        all_postags = set()
+        for tagset in all_tagsets.values():
+            all_postags.update(tagset)
+        print('{}\t{}'.format(word, all_postags))
+        if POSTags.Noun in all_postags and POSTags.Verb in all_postags:
+            print(all_tagsets)
+            print('========')
 
 
 if __name__ == '__main__':
