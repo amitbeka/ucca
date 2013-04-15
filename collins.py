@@ -28,6 +28,17 @@ class Entry:
     """
 
     class Sense:
+        """Represents one sense of a dictionary entry.
+
+        A sense is composed of a meaning with examples, part-of-speech tag and
+        other relevant data, but currently only the part-of-speech tag and
+        usage line are parsed.
+
+        Attributes:
+            pos: part-of-speech tag
+            usage: usage line, with its members separated by tabs
+
+        """
         def __init__(self, sense_dic):
             self.usage = '\t'.join(sense_dic['POS'])
             self.pos = self.usage
@@ -39,6 +50,9 @@ class Entry:
                         break
                 # In theory, shouldn't get here
                 self.pos = self.usage
+
+        def __str__(self):
+            return "Part-of-speech: {}\nUsage: {}".format(self.pos, self.usage)
 
     def __init__(self, key, forms, senses, context=None):
         """Initializes the class instance.
@@ -66,6 +80,13 @@ class Entry:
 
     def __hash__(self):
         return hash(self._key + KEY_CONTEXT_SEP + str(self._context))
+
+    def __str__(self):
+        new_key = self.key if self._context is None else '{} ({})'.format(
+            self.key, self._context)
+        return "Key: {}\nDerived Forms: {}\nSenses:\n{}".format(
+            new_key, ', '.join(self.derived_forms),
+            '\n===\n'.join(str(x) for x in self.senses))
 
 
 class CollinsDictionary:
