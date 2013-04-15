@@ -21,6 +21,10 @@ class WiktEntry:
         self.defn = defn
         self.lemma = lemma
 
+    def __str__(self):
+        return "{} ({})\t{}\t{}".format(self.phrase, self.lemma, self.pos,
+                                        self.defn)
+
 
 class Wiktionary:
     """Wiktionary object which provides lemmas and definitions.
