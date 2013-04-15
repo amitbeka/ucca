@@ -2,6 +2,7 @@
 
 import re
 from ucca.core import UCCAError
+from ucca.postags import POSTags
 
 
 class MultipleLemmasError(UCCAError):
@@ -15,11 +16,18 @@ class LemmaNotFound(UCCAError):
 class WiktEntry:
     """Represents an entry of a phrase, with its POS, definition and lemma."""
 
+    _tags = {'Noun': POSTags.Noun,
+             'Proper noun': POSTags.Noun,
+             'Verb': POSTags.Verb}
+
     def __init__(self, phrase, pos, defn, lemma):
         self.phrase = phrase
-        self.pos = pos
         self.defn = defn
         self.lemma = lemma
+        if pos in self._tags:
+            self.pos = self._tags[pos]
+        else:
+            self.pos = POSTags.Other
 
     def __str__(self):
         return "{} ({})\t{}\t{}".format(self.phrase, self.lemma, self.pos,
