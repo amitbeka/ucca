@@ -60,6 +60,7 @@ class Entry:
     def key(self):
         return self._key
 
+    @property
     def context(self):
         return self._context
 
