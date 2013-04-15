@@ -112,3 +112,13 @@ class Wiktionary:
 
         """
         return {e.lemma for e in self._entries[phrase]}
+
+    def by_form(self, phrase):
+        entries = []
+        for e in self._entries.get(phrase, []):
+            if e.phrase == e.lemma:
+                entries.append(e)
+            else:
+                entries.extend(x for x in self._entries.get(e.lemma, [])
+                               if x.pos == e.pos)
+        return entries
