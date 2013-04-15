@@ -41,15 +41,16 @@ class Entry:
         """
         def __init__(self, sense_dic):
             self.usage = '\t'.join(sense_dic['POS'])
-            self.pos = self.usage
+            self.pos = self.usage.lower()
             if len(self.usage.split()) > 1:
                 words = self.usage.split()
                 for word in words:
                     if word.isupper():
                         self.pos = word.lower()
                         break
-                # In theory, shouldn't get here
-                self.pos = self.usage
+                else:
+                    # In theory, shouldn't get here
+                    self.pos = self.usage
 
         def __str__(self):
             return "Part-of-speech: {}\nUsage: {}".format(self.pos, self.usage)
