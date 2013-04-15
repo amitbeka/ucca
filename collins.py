@@ -10,20 +10,6 @@ import nltk
 KEY_CONTEXT_SEP = '#'
 
 
-class Sense:
-    def __init__(self, sense_dic):
-        self.usage = '\t'.join(sense_dic['POS'])
-        self.pos = self.usage
-        if len(self.usage.split()) > 1:
-            words = self.usage.split()
-            for word in words:
-                if word.isupper():
-                    self.pos = word.lower()
-                    break
-            # In theory, shouldn't get here
-            self.pos = self.usage
-
-
 class Entry:
     """Collins dictionary entry structure.
 
@@ -37,8 +23,22 @@ class Entry:
             'apart' in 'apart from her' (exceptions context).
             If no context exists, it is None. (read only)
         derived_forms: list of possible forms for the key. Cannot be empty.
+        senses: list of possible senses for this key.
 
     """
+
+    class Sense:
+        def __init__(self, sense_dic):
+            self.usage = '\t'.join(sense_dic['POS'])
+            self.pos = self.usage
+            if len(self.usage.split()) > 1:
+                words = self.usage.split()
+                for word in words:
+                    if word.isupper():
+                        self.pos = word.lower()
+                        break
+                # In theory, shouldn't get here
+                self.pos = self.usage
 
     def __init__(self, key, forms, senses, context=None):
         """Initializes the class instance.
@@ -47,13 +47,14 @@ class Entry:
             key: the key of the Entry
             forms: the derived forms of the Entry. If None, the key will be
                 copied as the only form available.
+            senses: list of sense entries, each is a dict
             context: context of the key, if exists (None if not)
 
         """
         self._key = key
         self._context = context
         self.derived_forms = forms if forms is not None else [key]
-        self.senses = [Sense(x) for x in senses]
+        self.senses = [self.Sense(x) for x in senses]
 
     @property
     def key(self):
