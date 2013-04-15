@@ -10,6 +10,20 @@ import nltk
 KEY_CONTEXT_SEP = '#'
 
 
+class Sense:
+    def __init__(self, sense_dic):
+        self.usage = '\t'.join(sense_dic['POS'])
+        self.pos = self.usage
+        if len(self.usage.split()) > 1:
+            words = self.usage.split()
+            for word in words:
+                if word.isupper():
+                    self.pos = word.lower()
+                    break
+            # In theory, shouldn't get here
+            self.pos = self.usage
+
+
 class Entry:
     """Collins dictionary entry structure.
 
@@ -26,7 +40,7 @@ class Entry:
 
     """
 
-    def __init__(self, key, forms, context=None):
+    def __init__(self, key, forms, senses, context=None):
         """Initializes the class instance.
 
         Args:
@@ -39,6 +53,7 @@ class Entry:
         self._key = key
         self._context = context
         self.derived_forms = forms if forms is not None else [key]
+        self.senses = [Sense(x) for x in senses]
 
     @property
     def key(self):
@@ -73,7 +88,7 @@ class CollinsDictionary:
                 forms = v['forms']
             else:
                 forms = [key]
-            self._entries[k] = Entry(key, forms, context)
+            self._entries[k] = Entry(key, forms, v['senses'], context)
 
     def by_key(self, key):
         """Returns a list of entries whose key matches.
