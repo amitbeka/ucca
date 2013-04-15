@@ -109,3 +109,28 @@ class DixonIdentifier:
             base_form = base_form[0].key
         stem = self.stemmer.stem(base_form)
         return (base_form, stem, self.dixon.by_stem(stem))
+
+
+class FormIdentifier:
+    """Identifies which base forms are possible for a given phrase."""
+
+    def __init__(self, collins_path, wikt_path):
+        with open(collins_path, 'rb') as f:
+            self.collins = collins.CollinsDictionary(pickle.load(f))
+        with open(wikt_path) as f:
+            raw_defs = f.read().split('\n')[:-1]  # last line is empty
+            self.wikt = wikt.Wiktionary(raw_defs)
+
+    def get_forms(self, phrase):
+        coll_entries = self.collins.by_form(phrase)
+        wikt_entries = self.wikt.by_form(phrase)
+        if phrase.istitle():
+            coll_entries += self.collins.by_form(phrase.lower())
+            wikt_entries += self.wikt.by_form(phrase.lower())
+        forms = {}
+        for entry in coll_entries:
+            forms[entry.key] = (forms.get(entry.key, set()) |
+                                {s.pos for s in entry.senses})
+        for entry in wikt_entries:
+            forms[entry.lemma] = forms.get(entry.lemma, set()) | {entry.pos}
+        return forms
