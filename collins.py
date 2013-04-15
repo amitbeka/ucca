@@ -7,6 +7,8 @@ some self-explained keys and values (and some errors too).
 
 import nltk
 
+from ucca.postags import POSTags
+
 KEY_CONTEXT_SEP = '#'
 
 
@@ -39,18 +41,22 @@ class Entry:
             usage: usage line, with its members separated by tabs
 
         """
+
+        _tags = {'N-': POSTags.Noun,
+                 'VERB': POSTags.Verb,
+                 'PHRASAL': POSTags.Verb,
+                 'V-': POSTags.Verb,
+                 'MODAL': POSTags.Modal}
+
         def __init__(self, sense_dic):
             self.usage = '\t'.join(sense_dic['POS'])
-            self.pos = self.usage.lower()
-            if len(self.usage.split()) > 1:
-                words = self.usage.split()
-                for word in words:
-                    if word.isupper():
-                        self.pos = word.lower()
-                        break
-                else:
-                    # In theory, shouldn't get here
-                    self.pos = self.usage
+            self.pos = POSTags.Other
+            if not sense_dic['POS']:
+                return
+            for pattern, tag in self._tags.items():
+                if sense_dic['POS'][0].startswith(pattern):
+                    self.pos = tag
+                    break
 
         def __str__(self):
             return "Part-of-speech: {}\nUsage: {}".format(self.pos, self.usage)
