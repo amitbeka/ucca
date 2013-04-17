@@ -72,12 +72,26 @@ class Terminal(core.Node):
     def punct(self):
         return self.tag == NodeTags.Punct
 
+    def equals(self, other, *, ordered=False):
+        """Equals if the Terminals are of the same Layer, tag, position & text.
+
+        Args:
+            other: another Terminal to equal to
+            ordered: unused, here for API conformness.
+
+        Returns:
+            True iff the two Terminals are equal.
+
+        """
+        return (self.layer.ID == other.layer.ID and self.text == other.text
+                and self.position == other.position and self.tag == other.tag)
+
     def __eq__(self, other):
-        """Equals if they are of the same Passage, Layer, position & text."""
+        """Equals if both of the same Passage, Layer, position, tag & text."""
         if other.layer.ID != LAYER_ID:
             return False
         return (self.root == other.root and self.position == other.position
-                and self.text == other.text)
+                and self.text == other.text and self.tag == other.tag)
 
     def __hash__(self):
         """Hashes the Terminals aacording to its ID and text."""
