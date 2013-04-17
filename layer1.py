@@ -330,7 +330,8 @@ class FoundationalNode(core.Node):
         return (self.state is not None or self.process is not None)
 
     def __str__(self):
-        if all(e.tag == EdgeTags.Terminal for e in self):
+        if all(e.tag in (EdgeTags.Terminal, EdgeTags.Punctuation)
+               for e in self):
             return ' '.join(str(t) for t in self.children)
         sorted_edges = sorted(list(self),
                               key=lambda x: x.child.start_position)
