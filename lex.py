@@ -5,6 +5,7 @@ import pickle
 import xml.etree.ElementTree as ETree
 
 from ucca import collins, wikt
+from ucca.postags import POSTags
 
 
 class DixonVerbs:
@@ -114,6 +115,8 @@ class DixonIdentifier:
 class FormIdentifier:
     """Identifies which base forms are possible for a given phrase."""
 
+    NonDualForms = {'a', 'in'}
+
     def __init__(self, collins_path, wikt_path):
         with open(collins_path, 'rb') as f:
             self.collins = collins.CollinsDictionary(pickle.load(f))
@@ -134,3 +137,16 @@ class FormIdentifier:
         for entry in wikt_entries:
             forms[entry.lemma] = forms.get(entry.lemma, set()) | {entry.pos}
         return forms
+
+    def is_dual_vn(self, phrase):
+        """Returns whether the phrase is both a form of a noun and a verb."""
+        forms = self.get_forms(phrase)
+        if not forms:
+            return False
+        lemmas = set(forms.keys())
+        possible_tags = set()
+        for tagset in forms.values():
+            possible_tags.update(tagset)
+        return (POSTags.Verb in possible_tags and
+                POSTags.Noun in possible_tags and
+                not lemmas.intersection(self.NonDualForms))

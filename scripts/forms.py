@@ -50,7 +50,7 @@ def run_file(path, eng):
         for tagset in all_tagsets.values():
             all_postags.update(tagset)
         print('{}\t{}'.format(word, all_postags))
-        if POSTags.Noun in all_postags and POSTags.Verb in all_postags:
+        if eng.is_dual_vn(word):
             print(all_tagsets)
             print('========')
 
