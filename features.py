@@ -67,6 +67,27 @@ def extract_ngrams(size, sentences, given=None):
     return counts
 
 
+def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
+    """Filters the given ngrams according to the keyword parameters.
+
+    Args:
+        lines: list of tab-seprated strings of count-ngram pairs
+        threshold: what is the minimum count to keep the ngram in
+        exclude: set of tokens which make the ngram being omitted.
+            If one of the tokens appear in any position in the ngram, it
+            is being excluded from the results.
+
+    Returns:
+        A new list with only kept ngrams (in line format).
+
+    """
+    def _keep(line):
+        count, ngram = line.strip().split('\t')
+        return (int(count) >= threshold and exclude.isdisjoint(set(ngram)))
+
+    return [x for x in lines if _keep(x)]
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -77,16 +98,26 @@ def parse_cmd():
     """Parses and validates cmd line arguments, then return them."""
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=('ngrams',))
-    parser.add_argument('action', choices=('extract',))
+    parser.add_argument('action', choices=('extract', 'filter'))
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
+    parser.add_argument('--exclude')
+    parser.add_argument('--threshold', type=int, default=1)
 
     args = parser.parse_args()
+    if args.exclude:
+        with open(args.exclude) as f:
+            tokens = f.readlines()
+        args.exclude = {x.strip() for x in tokens}
+    else:
+        args.exclude = set()
+
     return args
 
 
 def main():
     args = parse_cmd()
+
     if args.command == 'ngrams' and args.action == 'extract':
         counts = None
         for data in chunks(sys.stdin):
@@ -103,6 +134,12 @@ def main():
             for ngram, value in counts.items():
                 print('\t'.join([str(value), ' '.join(ngram)]))
 
+    if args.command == 'ngrams' and args.action == 'filter':
+        for data in chunks(sys.stdin):
+            filtered = filter_ngrams(data, threshold=args.threshold,
+                                     exclude=args.exclude)
+            print(*filtered, sep='')
+            print_progress(len(data))
 
 if __name__ == '__main__':
     main()
