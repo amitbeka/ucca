@@ -79,8 +79,6 @@ def parse_cmd():
     parser.add_argument('command', choices=('ngrams',))
     parser.add_argument('action', choices=('extract',))
     parser.add_argument('--ngram_size', type=int, default=1)
-    parser.add_argument('--format', choices=('string', 'pickle'),
-                        default='string')
     parser.add_argument('--sort', action='store_true')
 
     args = parser.parse_args()
