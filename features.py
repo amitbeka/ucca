@@ -81,6 +81,7 @@ def parse_cmd():
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--format', choices=('string', 'pickle'),
                         default='string')
+    parser.add_argument('--sort', action='store_true')
 
     args = parser.parse_args()
     return args
@@ -94,9 +95,15 @@ def main():
             sentences = tokenize(data)
             counts = extract_ngrams(args.ngram_size, sentences, counts)
             print_progress(len(sentences))
-    sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-    print('\n'.join('\t'.join([' '.join(x[0]), str(x[1])])
-                    for x in sorted_counts))
+        print("Finished processing", file=sys.stderr)
+        if args.sort:
+            sorted_counts = sorted(counts.items(), key=lambda x: x[1],
+                                   reverse=True)
+            print('\n'.join('\t'.join([str(value), ' '.join(ngram)])
+                        for ngram, value in sorted_counts))
+        else:
+            for ngram, value in counts.items():
+                print('\t'.join([str(value), ' '.join(ngram)]))
 
 
 if __name__ == '__main__':
