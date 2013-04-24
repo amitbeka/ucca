@@ -1,0 +1,2 @@
+for X in a-z:
+	ionice -c 2 -n 7 python3 features.py ngrams extract --ngram_size 3 --lemmatize < ~/ukwac/full/ft.X > ~/ukwac/full/ft_trigram.X
