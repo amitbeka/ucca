@@ -40,6 +40,12 @@ def tokenize(sentences):
     return [tuple(x.strip().split()) for x in sentences if x.strip()]
 
 
+def parse_ngram_line(line):
+    """tab-separated ngram line ==> count (int), ngram (tuple)"""
+    count, ngram = line.strip().split('\t')
+    return int(count), tuple(ngram.split())
+
+
 def extract_ngrams(size, sentences, counts):
     """Extracts all ngrams of the given size from the sentences.
 
@@ -78,14 +84,40 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
 
     """
     def _discard(line):
-        count, ngram = line.strip().split('\t')
-        count = int(count)
-        ngram = tuple(ngram.split())
+        count, ngram = parse_ngram_line(line)
         return (count < threshold or exclude & set(ngram))
 
     indices = [i for i, line in enumerate(lines) if _discard(line)]
     for i in reversed(indices):
         del lines[i]
+    return lines
+
+
+def merge_ngrams(lines):
+    """Merge adjacent ngram counts if they are refering to the same ngram.
+
+    Assumes lines are sorted alphabetically by ngram, and removes duplicate
+    counts by adding them to one line.
+
+    Args:
+        lines: list of tab-separated strings of count-ngram pairs,
+            will be modified
+
+    Returns:
+        lines argument (after modification)
+
+    """
+    total = len(lines)
+    i = 0
+    while i + 1 < total:
+        count1, ngram1 = parse_ngram_line(lines[i])
+        count2, ngram2 = parse_ngram_line(lines[i + 1])
+        if ngram1 == ngram2:
+            lines[i] = '\t'.join(str(count1 + count2), ngram1) + '\n'
+            del lines[i + 1]
+            total -= 1
+        else:
+            i += 1
     return lines
 
 
@@ -99,7 +131,7 @@ def parse_cmd():
     """Parses and validates cmd line arguments, then return them."""
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=('ngrams',))
-    parser.add_argument('action', choices=('extract', 'filter'))
+    parser.add_argument('action', choices=('extract', 'filter', 'merge'))
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
     parser.add_argument('--exclude')
@@ -141,6 +173,12 @@ def main():
             filtered = filter_ngrams(data, threshold=args.threshold,
                                      exclude=args.exclude)
             print(*filtered, sep='')
+
+    if args.command == 'ngrams' and args.action == 'merge':
+        data = sys.stdin.readlines()  # no chunks, separates adjacent lines
+        merged = merge_ngrams(data)
+        print(*merged, sep='')
+
 
 if __name__ == '__main__':
     main()
