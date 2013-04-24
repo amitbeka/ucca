@@ -40,25 +40,20 @@ def tokenize(sentences):
     return [tuple(x.strip().split()) for x in sentences if x.strip()]
 
 
-def extract_ngrams(size, sentences, given=None):
+def extract_ngrams(size, sentences, counts):
     """Extracts all ngrams of the given size from the sentences.
 
     Args:
         size: the N parameter of the ngrams to extract
         sentences: sequence (can be generator) of tuples of strings, each
             is a token.
-        given: previous ngram dictionary to start with. None otherwise.
-            This dictionary isn't changed by the method.
+        counts: previous ngram dictionary to start with.
+            This dictionary is changed by the method.
 
     Returns:
-        a new dictionary with (ngram, count) pairs.
+        counts dictionary (the same as the argument).
 
     """
-
-    if given is not None:
-        counts = given.copy()
-    else:
-        counts = {}
     for s in sentences:
         if len(s) < size:
             continue
@@ -71,21 +66,27 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
     """Filters the given ngrams according to the keyword parameters.
 
     Args:
-        lines: list of tab-seprated strings of count-ngram pairs
+        lines: list of tab-seprated strings of count-ngram pairs,
+            will be modified.
         threshold: what is the minimum count to keep the ngram in
         exclude: set of tokens which make the ngram being omitted.
             If one of the tokens appear in any position in the ngram, it
             is being excluded from the results.
 
     Returns:
-        A new list with only kept ngrams (in line format).
+        lines argument (after modification)
 
     """
-    def _keep(line):
+    def _discard(line):
         count, ngram = line.strip().split('\t')
-        return (int(count) >= threshold and exclude.isdisjoint(set(ngram)))
+        count = int(count)
+        ngram = tuple(ngram.split())
+        return (count < threshold or exclude & set(ngram))
 
-    return [x for x in lines if _keep(x)]
+    indices = [i for i, line in enumerate(lines) if _discard(line)]
+    for i in reversed(indices):
+        del lines[i]
+    return lines
 
 
 def print_progress(current, updated=[0]):
@@ -119,7 +120,7 @@ def main():
     args = parse_cmd()
 
     if args.command == 'ngrams' and args.action == 'extract':
-        counts = None
+        counts = {}
         for data in chunks(sys.stdin):
             sentences = tokenize(data)
             counts = extract_ngrams(args.ngram_size, sentences, counts)
@@ -136,10 +137,10 @@ def main():
 
     if args.command == 'ngrams' and args.action == 'filter':
         for data in chunks(sys.stdin):
+            print_progress(len(data))
             filtered = filter_ngrams(data, threshold=args.threshold,
                                      exclude=args.exclude)
             print(*filtered, sep='')
-            print_progress(len(data))
 
 if __name__ == '__main__':
     main()
