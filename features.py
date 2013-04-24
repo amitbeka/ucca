@@ -45,7 +45,7 @@ def parse_ngram_line(line):
     return int(count), tuple(ngram.split())
 
 
-def extract_ngrams(size, sentences, counts):
+def extract_ngrams(size, sentences, counts, *, lemmatize=False):
     """Extracts all ngrams of the given size from the sentences.
 
     Args:
@@ -54,14 +54,19 @@ def extract_ngrams(size, sentences, counts):
             is a token.
         counts: previous ngram dictionary to start with.
             This dictionary is changed by the method.
+        lemmatize: whether to lemmatize the ngram tokens. Lemmatization is
+            of noun forms, so plurals will be removed, but basically nothing
+            else will change (verb derivations, adverbs etc.).
 
     Returns:
         counts dictionary (the same as the argument).
 
     """
-    for s in sentences:
-        if len(s) < size:
+    wn = nltk.stem.wordnet.WordNetLemmatizer()
+    for sentence in sentences:
+        if len(sentence) < size:
             continue
+        s = tuple(wn.lemmatize(x) for x in sentence) if lemmatize else sentence
         for i in range((len(s) - size + 1)):
             counts[s[i:i + size]] = counts.get(s[i:i + size], 0) + 1
     return counts
@@ -149,6 +154,7 @@ def parse_cmd():
     parser.add_argument('--sort', action='store_true')
     parser.add_argument('--exclude')
     parser.add_argument('--all', action='store_true')
+    parser.add_argument('--lemmatize', action='store_true')
     parser.add_argument('--threshold', type=int, default=1)
     parser.add_argument('--startswith')
     parser.add_argument('--endswith')
@@ -171,7 +177,8 @@ def main():
         counts = {}
         for data in chunks(sys.stdin):
             sentences = tokenize(data)
-            counts = extract_ngrams(args.ngram_size, sentences, counts)
+            counts = extract_ngrams(args.ngram_size, sentences, counts,
+                                   lemmatize=args.lemmatize)
             print_progress(len(sentences))
         print("Finished processing", file=sys.stderr)
         if args.sort:
