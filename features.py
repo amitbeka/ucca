@@ -9,8 +9,7 @@ UCCA passages is also covered.
 
 import argparse
 import sys
-
-from itertools import islice
+import nltk
 
 
 DEFAULT_CHUNK_SIZE = 2 ** 20
@@ -68,7 +67,8 @@ def extract_ngrams(size, sentences, counts):
     return counts
 
 
-def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False):
+def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False,
+                  startswith=None, endswith=None):
     """Filters the given ngrams according to the keyword parameters.
 
     Args:
@@ -80,6 +80,10 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False):
             is being excluded from the results.
         match_all: whether whole the tokens in the ngram should match
             exclude in order to be removed.
+        startswith: a token which all remaining ngrams must start with.
+            all ngrams go lemmatization in the first position in order
+            to match. None if not active.
+        endswith: same as startswith, but at the last ngram position.
 
     Returns:
         lines argument (after modification)
@@ -87,11 +91,15 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False):
     """
     def _discard(line):
         count, ngram = parse_ngram_line(line)
+        if ((startswith and wn.lemmatize(ngram[0]) != startswith) or
+                (endswith and wn.lemmatize(ngram[-1]) != endswith)):
+            return True
         if match_all:
             return (count < threshold or set(ngram) < exclude)
         else:
             return (count < threshold or exclude & set(ngram))
 
+    wn = nltk.stem.wordnet.WordNetLemmatizer()
     indices = [i for i, line in enumerate(lines) if _discard(line)]
     for i in reversed(indices):
         del lines[i]
@@ -142,6 +150,8 @@ def parse_cmd():
     parser.add_argument('--exclude')
     parser.add_argument('--all', action='store_true')
     parser.add_argument('--threshold', type=int, default=1)
+    parser.add_argument('--startswith')
+    parser.add_argument('--endswith')
 
     args = parser.parse_args()
     if args.exclude:
@@ -178,7 +188,9 @@ def main():
             print_progress(len(data))
             filtered = filter_ngrams(data, threshold=args.threshold,
                                      exclude=args.exclude,
-                                     match_all=args.all)
+                                     match_all=args.all,
+                                     startswith=args.startswith,
+                                     endswith=args.endswith)
             print(*filtered, sep='')
 
     if args.command == 'ngrams' and args.action == 'merge':
