@@ -68,7 +68,7 @@ def extract_ngrams(size, sentences, counts):
     return counts
 
 
-def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
+def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False):
     """Filters the given ngrams according to the keyword parameters.
 
     Args:
@@ -78,6 +78,8 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
         exclude: set of tokens which make the ngram being omitted.
             If one of the tokens appear in any position in the ngram, it
             is being excluded from the results.
+        match_all: whether whole the tokens in the ngram should match
+            exclude in order to be removed.
 
     Returns:
         lines argument (after modification)
@@ -85,7 +87,10 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset()):
     """
     def _discard(line):
         count, ngram = parse_ngram_line(line)
-        return (count < threshold or exclude & set(ngram))
+        if match_all:
+            return (count < threshold or set(ngram) < exclude)
+        else:
+            return (count < threshold or exclude & set(ngram))
 
     indices = [i for i, line in enumerate(lines) if _discard(line)]
     for i in reversed(indices):
@@ -135,6 +140,7 @@ def parse_cmd():
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
     parser.add_argument('--exclude')
+    parser.add_argument('--all', action='store_true')
     parser.add_argument('--threshold', type=int, default=1)
 
     args = parser.parse_args()
@@ -171,7 +177,8 @@ def main():
         for data in chunks(sys.stdin):
             print_progress(len(data))
             filtered = filter_ngrams(data, threshold=args.threshold,
-                                     exclude=args.exclude)
+                                     exclude=args.exclude,
+                                     match_all=args.all)
             print(*filtered, sep='')
 
     if args.command == 'ngrams' and args.action == 'merge':
