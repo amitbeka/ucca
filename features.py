@@ -131,7 +131,7 @@ def merge_ngrams(lines):
         count1, ngram1 = parse_ngram_line(lines[i])
         count2, ngram2 = parse_ngram_line(lines[i + 1])
         if ngram1 == ngram2:
-            lines[i] = '\t'.join(str(count1 + count2), ngram1) + '\n'
+            lines[i] = '{}\t{}\n'.format(count1 + count2, ' '.join(ngram1))
             del lines[i + 1]
             total -= 1
         else:
