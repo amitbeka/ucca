@@ -433,6 +433,25 @@ class Layer1Tests(unittest.TestCase):
                                   '17 18] [A 19] ] ] [U 20] ',
                                   '1.2-->1.3', '1.11-->1.8,1.12'])
 
+    def test_destroy(self):
+        p = self._create_passage()
+        l0 = p.layer('0')
+        l1 = p.layer('1')
+
+        terms = l0.all
+        head, lkg1, lkg2 = l1.heads
+        link1, ps1, ps23, punct2 = head.children
+        p1, a1, punct1 = [x.child for x in ps1 if not x.attrib.get('remote')]
+        ps2, link2, ps3 = ps23.children
+        a2, d2 = [x.child for x in ps2 if not x.attrib.get('remote')]
+        p3, a3, a4 = ps3.children
+
+        ps1.destroy()
+        self.assertSequenceEqual(head.children, [link1, ps23, punct2])
+        self.assertSequenceEqual(p1.parents, [ps2])
+        self.assertFalse(a1.parents)
+        self.assertFalse(punct1.parents)
+
 
 class ConversionTests(unittest.TestCase):
     """Tests convert module correctness and API."""

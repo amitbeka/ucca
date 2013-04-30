@@ -457,9 +457,10 @@ class Node:
         self from the :class:Layer and Passage objects.
 
         """
-        for edge in self._outgoing:
+        # using outgoing and incoming so I won't change the list I'm working on
+        for edge in self.outgoing:
             self.remove(edge)
-        for edge in self._incoming:
+        for edge in self.incoming:
             edge.parent.remove(edge)
         self.layer._remove_node(self)
         self._root._remove_node(self)
