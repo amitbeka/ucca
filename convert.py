@@ -85,6 +85,7 @@ class SiteCfg:
     Types = _Types
     Attr = _Attr
     TagConversion = {'Linked U': layer1.EdgeTags.ParallelScene,
+                     'Parallel Scene': layer1.EdgeTags.ParallelScene,
                      'Function': layer1.EdgeTags.Function,
                      'Participant': layer1.EdgeTags.Participant,
                      'Process': layer1.EdgeTags.Process,
@@ -96,6 +97,7 @@ class SiteCfg:
                      'Ground': layer1.EdgeTags.Ground,
                      'Connector': layer1.EdgeTags.Connector,
                      'Role Marker': layer1.EdgeTags.Relator,
+                     'Relator': layer1.EdgeTags.Relator,
                     }
 
 
