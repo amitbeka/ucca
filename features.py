@@ -114,29 +114,28 @@ def filter_ngrams(lines, *, threshold=1, exclude=frozenset(), match_all=False,
 def merge_ngrams(lines):
     """Merge adjacent ngram counts if they are refering to the same ngram.
 
-    Assumes lines are sorted alphabetically by ngram, and removes duplicate
-    counts by adding them to one line.
+    Assumes lines are sorted alphabetically by ngram, and yields the lines
+    after merging the counts.
 
     Args:
-        lines: list of tab-separated strings of count-ngram pairs,
-            will be modified
+        lines: a generator of tab-separated strings of count-ngram pairs,
 
-    Returns:
-        lines argument (after modification)
+    Yields:
+        merged-count lines of ngrams
 
     """
-    total = len(lines)
-    i = 0
-    while i + 1 < total:
-        count1, ngram1 = parse_ngram_line(lines[i])
-        count2, ngram2 = parse_ngram_line(lines[i + 1])
+    first = next(lines)  # first line with the ngram, will be the one yielded
+    if not first:
+        return
+    for curr in lines:
+        count1, ngram1 = parse_ngram_line(first)
+        count2, ngram2 = parse_ngram_line(curr)
         if ngram1 == ngram2:
-            lines[i] = '{}\t{}\n'.format(count1 + count2, ' '.join(ngram1))
-            del lines[i + 1]
-            total -= 1
+            first = '{}\t{}\n'.format(count1 + count2, ' '.join(ngram1))
         else:
-            i += 1
-    return lines
+            yield first
+            first = curr
+    yield first
 
 
 def print_progress(current, updated=[0]):
@@ -201,9 +200,8 @@ def main():
             print(*filtered, sep='')
 
     if args.command == 'ngrams' and args.action == 'merge':
-        data = sys.stdin.readlines()  # no chunks, separates adjacent lines
-        merged = merge_ngrams(data)
-        print(*merged, sep='')
+        for new_line in merge_ngrams(sys.stdin):
+            print(new_line, end='')
 
 
 if __name__ == '__main__':
