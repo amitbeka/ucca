@@ -204,6 +204,28 @@ class CoreTests(unittest.TestCase):
         p2 = p1.copy([l0id])
         self.assertTrue(p1.layer(l0id).equals(p2.layer(l0id)))
 
+    def test_iteration(self):
+        p = self._create_basic_passage()
+        l1, l2 = p.layer('1'), p.layer('2')
+        node11, node12, node13 = l1.all
+        node22, node21 = l2.all
+
+        self.assertSequenceEqual(list(node11.iter()), [node11])
+        self.assertSequenceEqual(list(node11.iter(obj='edges')), [])
+        self.assertSequenceEqual(list(node13.iter(key=lambda x: x.tag != '3')),
+                                 [])
+        self.assertSequenceEqual(list(node12.iter()), [node12, node13, node11])
+        self.assertSequenceEqual(list(x.ID for x in node12.iter(obj='edges')),
+                                 ['1.2->1.3', '1.2->1.1'])
+        self.assertSequenceEqual(list(node21.iter(duplicates=True)),
+                                 [node21, node11, node12, node13, node11])
+        self.assertSequenceEqual(list(node21.iter()),
+                                 [node21, node11, node12, node13])
+        self.assertSequenceEqual(list(node22.iter(method='bfs',
+                                                  duplicates=True)),
+                                 [node22, node11, node12, node13, node13,
+                                  node11])
+
 
 class Layer0Tests(unittest.TestCase):
     """Tests module layer0 functionality."""

@@ -523,6 +523,49 @@ class Node:
             return False
         return True
 
+    def iter(self, obj="nodes", method="dfs", duplicates=False, key=None):
+        """Iterates the :class:Node objects in the subtree of self.
+
+        Args:
+            obj: yield Node objects (use value "nodes", default) or Edge
+                objects (use values "edges")
+            method: do breadth-first iteration (use value "bfs") or depth-dirst
+                iteration (value "dfs", default).
+            duplicates: If True, may return the same object twice if it is
+                encountered twice, because of the DAG structure which isn't
+                necessarily a tree. If it is False, all objects will be yielded
+                only the first time they are encountered. Defaults to False.
+            key: boolean function that filters the iterable items. key function
+                takes one argument (the item) and returns True if it should be
+                returned to the user. If an item isn't returned, its subtree
+                is still iterated.  Defaults to None (returns all items).
+
+        Yields:
+            a :class:Node or :class:Edge object according to the iteration
+            parameters.
+
+        """
+        if method not in ("dfs", "bfs"):
+            raise ValueError("method can be either 'dfs' or 'bfs'")
+        if obj not in ("nodes", "edges"):
+            raise ValueError("obj can be either 'nodes' or 'edges'")
+        processed = set()
+        if obj == 'nodes':
+            waiting = [self]
+        else:
+            waiting = self._outgoing[:]
+        while len(waiting):
+            curr = waiting.pop(0)
+            if key is None or key(curr):
+                yield curr
+            processed.add(curr)
+            to_add = curr.children if obj == 'nodes' else list(curr.child)
+            to_add = [x for x in to_add if duplicates or x not in processed]
+            if method == "bfs":
+                waiting.extend(to_add)
+            else:
+                waiting = to_add + waiting
+
 
 class Layer:
     """Group of similar :class:Node objects in UCCA annotation graph.
