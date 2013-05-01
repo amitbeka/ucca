@@ -860,9 +860,25 @@ class Passage:
 
     @ModifyPassage
     def _add_edge(self, edge):
-        if edge.parent.layer == edge.child.layer:
-            edge.parent.layer._add_edge(edge)
+        """Adds a :class:Edge object to :class:Passage.
+
+        Handles altering the Passage and :class:Layer objects accordingly.
+
+        Args:
+            edge: the Edge object to add
+
+        """
+        # Currently no work is done in the Passage level
+        edge.parent.layer._add_edge(edge)
 
     def _remove_edge(self, edge):
-        if edge.parent.layer == edge.child.layer:
-            edge.parent.layer._remove_edge(edge)
+        """Removes a :class:Edge object from :class:Passage.
+
+        Handles altering the Passage and :class:Layer objects accordingly.
+
+        Args:
+            edge: the Edge object to remove
+
+        """
+        # Currently no work is done in the Passage level
+        edge.parent.layer._remove_edge(edge)
