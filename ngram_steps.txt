@@ -1,5 +1,6 @@
+# Creating trigrams, then filtering the ones containing punctuation or with count one per file (~<26 all)
 for X in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
 	ionice -c 2 -n 7 python3 features.py ngrams extract --ngram_size 3 --lemmatize < ~/ukwac/full/ft.$X > ~/ukwac/full/ft_trigram.$X
 	ionice -c 2 -n 7 sort -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted.$X ~/ukwac/full/ft_trigram.$X
-	ionice -c 2 -n 7 python3 features.py ngrams filter --exclude /home/beka/ukwac/punctlist < ~/ukwac/full/ft_trigram_sorted.$X > ~/ukwac/full/ft_trigram_sorted_nopunc.$X
+	ionice -c 2 -n 7 python3 features.py ngrams filter --exclude /home/beka/ukwac/punctlist --threshold 2 < ~/ukwac/full/ft_trigram_sorted.$X > ~/ukwac/full/ft_trigram_sorted_nopunc_2.$X
 done
