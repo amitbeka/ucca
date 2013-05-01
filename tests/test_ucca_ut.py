@@ -429,6 +429,16 @@ class Layer1Tests(unittest.TestCase):
         self.assertSequenceEqual(l1.top_scenes, [ps1, ps23])
         self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
 
+        # Changing the process tag of scene #1 to A and back, validate that
+        # top scenes are updates accordingly
+        p_edge = [e for e in ps1 if e.tag == layer1.EdgeTags.Process][0]
+        p_edge.tag = layer1.EdgeTags.Participant
+        self.assertSequenceEqual(l1.top_scenes, [ps23])
+        self.assertSequenceEqual(l1.top_linkages, [lkg2])
+        p_edge.tag = layer1.EdgeTags.Process
+        self.assertSequenceEqual(l1.top_scenes, [ps1, ps23])
+        self.assertSequenceEqual(l1.top_linkages, [lkg1, lkg2])
+
     def test_str(self):
         p = self._create_passage()
         self.assertSequenceEqual([str(x) for x in p.layer('1').heads],

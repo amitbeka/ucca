@@ -533,3 +533,7 @@ class Layer1(core.Layer):
     def _remove_edge(self, edge):
         super()._remove_edge(edge)
         self._update_edge(edge)
+
+    def _change_edge_tag(self, edge, old_tag):
+        super()._change_edge_tag(edge, old_tag)
+        self._update_edge(edge)
