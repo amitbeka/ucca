@@ -237,6 +237,13 @@ class Edge:
     def tag(self):
         return self._tag
 
+    @tag.setter
+    @ModifyPassage
+    def tag(self, new_tag):
+        old_tag = self._tag
+        self._tag = new_tag
+        self._root._change_edge_tag(self, old_tag)
+
     @property
     def root(self):
         return self._root
@@ -338,6 +345,13 @@ class Node:
     @property
     def tag(self):
         return self._tag
+
+    @tag.setter
+    @ModifyPassage
+    def tag(self, new_tag):
+        old_tag = self._tag
+        self._tag = new_tag
+        self._root._change_node_tag(self, old_tag)
 
     @property
     def root(self):
@@ -674,6 +688,26 @@ class Layer:
         self._all.remove(node)
         self._heads.remove(node)
 
+    def _change_edge_tag(self, edge, old_tag):
+        """Updates the :class:Layer objects with the change.
+
+        Args:
+            edge: the updated :class:Edge object
+            old_tag: the Edge's tag before the change
+
+        """
+        pass  # meant to be overriden by subclasses
+
+    def _change_node_tag(self, node, old_tag):
+        """Updates the :class:Layer objects with the change.
+
+        Args:
+            node: the updated :class:Node object
+            old_tag: the Node's tag before the change
+
+        """
+        pass  # meant to be overriden by subclasses
+
 
 class Passage:
     """An annotated text with UCCA annotatation graph.
@@ -882,3 +916,25 @@ class Passage:
         """
         # Currently no work is done in the Passage level
         edge.parent.layer._remove_edge(edge)
+
+    def _change_edge_tag(self, edge, old_tag):
+        """Updates the :class:Passage and :class:Layer objects with the change.
+
+        Args:
+            edge: the updated :class:Edge object
+            old_tag: the Edge's tag before the change
+
+        """
+        # Currently no work is done in the Passage level
+        edge.parent.layer._change_edge_tag(edge, old_tag)
+
+    def _change_node_tag(self, node, old_tag):
+        """Updates the :class:Passage and :class:Layer objects with the change.
+
+        Args:
+            node: the updated :class:Node object
+            old_tag: the Node's tag before the change
+
+        """
+        # Currently no work is done in the Passage level
+        node.layer._change_node_tag(node, old_tag)

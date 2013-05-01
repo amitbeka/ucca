@@ -128,6 +128,11 @@ class CoreTests(unittest.TestCase):
         self.assertSequenceEqual(l1.heads, [node13, node14])
         self.assertSequenceEqual(node22.children, [node11, node13])
 
+        node22.tag = 'x'
+        node22[0].tag = 'testx'
+        self.assertEqual(node22.tag, 'x')
+        self.assertEqual(node22[0].tag, 'testx')
+
     def test_equals(self):
         p1 = core.Passage('1')
         p2 = core.Passage('2')
