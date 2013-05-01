@@ -197,7 +197,7 @@ def main():
                                      match_all=args.all,
                                      startswith=args.startswith,
                                      endswith=args.endswith)
-            print(*filtered, sep='')
+            print(*filtered, sep='', end='')
 
     if args.command == 'ngrams' and args.action == 'merge':
         for new_line in merge_ngrams(sys.stdin):
