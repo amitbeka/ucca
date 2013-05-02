@@ -4,3 +4,12 @@ for X in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
 	ionice -c 2 -n 7 sort -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted.$X ~/ukwac/full/ft_trigram.$X
 	ionice -c 2 -n 7 python3 features.py ngrams filter --exclude /home/beka/ukwac/punctlist --threshold 2 < ~/ukwac/full/ft_trigram_sorted.$X > ~/ukwac/full/ft_trigram_sorted_nopunc_2.$X
 done
+
+# Merging all trigrams to one list
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.abcd ~/ukwac/full/ft_trigram_sorted_2.a ~/ukwac/full/ft_trigram_sorted_2.b ~/ukwac/full/ft_trigram_sorted_2.c ~/ukwac/full/ft_trigram_sorted_2.d
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.efgh ~/ukwac/full/ft_trigram_sorted_2.e ~/ukwac/full/ft_trigram_sorted_2.f ~/ukwac/full/ft_trigram_sorted_2.g ~/ukwac/full/ft_trigram_sorted_2.h
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.ijkl ~/ukwac/full/ft_trigram_sorted_2.i ~/ukwac/full/ft_trigram_sorted_2.j ~/ukwac/full/ft_trigram_sorted_2.k ~/ukwac/full/ft_trigram_sorted_2.l
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.mnop ~/ukwac/full/ft_trigram_sorted_2.m ~/ukwac/full/ft_trigram_sorted_2.n ~/ukwac/full/ft_trigram_sorted_2.o ~/ukwac/full/ft_trigram_sorted_2.p
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.qrstu ~/ukwac/full/ft_trigram_sorted_2.q ~/ukwac/full/ft_trigram_sorted_2.r ~/ukwac/full/ft_trigram_sorted_2.s ~/ukwac/full/ft_trigram_sorted_2.t ~/ukwac/full/ft_trigram_sorted_2.u
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.vwxyz ~/ukwac/full/ft_trigram_sorted_2.v ~/ukwac/full/ft_trigram_sorted_2.w ~/ukwac/full/ft_trigram_sorted_2.x ~/ukwac/full/ft_trigram_sorted_2.y ~/ukwac/full/ft_trigram_sorted_2.z
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2 ~/ukwac/full/ft_trigram_sorted_2.abcd ~/ukwac/full/ft_trigram_sorted_2.efgh ~/ukwac/full/ft_trigram_sorted_2.ijkl ~/ukwac/full/ft_trigram_sorted_2.mnop ~/ukwac/full/ft_trigram_sorted_2.qrstu ~/ukwac/full/ft_trigram_sorted_2.vwxyz
