@@ -6,12 +6,50 @@ for X in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
 done
 
 # Merging all trigrams to one list
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.abcd ~/ukwac/full/ft_trigram_sorted_2.a ~/ukwac/full/ft_trigram_sorted_2.b ~/ukwac/full/ft_trigram_sorted_2.c ~/ukwac/full/ft_trigram_sorted_2.d
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.efgh ~/ukwac/full/ft_trigram_sorted_2.e ~/ukwac/full/ft_trigram_sorted_2.f ~/ukwac/full/ft_trigram_sorted_2.g ~/ukwac/full/ft_trigram_sorted_2.h
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.ijkl ~/ukwac/full/ft_trigram_sorted_2.i ~/ukwac/full/ft_trigram_sorted_2.j ~/ukwac/full/ft_trigram_sorted_2.k ~/ukwac/full/ft_trigram_sorted_2.l
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.mnop ~/ukwac/full/ft_trigram_sorted_2.m ~/ukwac/full/ft_trigram_sorted_2.n ~/ukwac/full/ft_trigram_sorted_2.o ~/ukwac/full/ft_trigram_sorted_2.p
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.qrstu ~/ukwac/full/ft_trigram_sorted_2.q ~/ukwac/full/ft_trigram_sorted_2.r ~/ukwac/full/ft_trigram_sorted_2.s ~/ukwac/full/ft_trigram_sorted_2.t ~/ukwac/full/ft_trigram_sorted_2.u
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2.vwxyz ~/ukwac/full/ft_trigram_sorted_2.v ~/ukwac/full/ft_trigram_sorted_2.w ~/ukwac/full/ft_trigram_sorted_2.x ~/ukwac/full/ft_trigram_sorted_2.y ~/ukwac/full/ft_trigram_sorted_2.z
-ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_2 ~/ukwac/full/ft_trigram_sorted_2.abcd ~/ukwac/full/ft_trigram_sorted_2.efgh ~/ukwac/full/ft_trigram_sorted_2.ijkl ~/ukwac/full/ft_trigram_sorted_2.mnop ~/ukwac/full/ft_trigram_sorted_2.qrstu ~/ukwac/full/ft_trigram_sorted_2.vwxyz
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.abcd ~/ukwac/full/ft_trigram_sorted_nopunc_2.a ~/ukwac/full/ft_trigram_sorted_nopunc_2.b ~/ukwac/full/ft_trigram_sorted_nopunc_2.c ~/ukwac/full/ft_trigram_sorted_nopunc_2.d
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.efgh ~/ukwac/full/ft_trigram_sorted_nopunc_2.e ~/ukwac/full/ft_trigram_sorted_nopunc_2.f ~/ukwac/full/ft_trigram_sorted_nopunc_2.g ~/ukwac/full/ft_trigram_sorted_nopunc_2.h
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.ijkl ~/ukwac/full/ft_trigram_sorted_nopunc_2.i ~/ukwac/full/ft_trigram_sorted_nopunc_2.j ~/ukwac/full/ft_trigram_sorted_nopunc_2.k ~/ukwac/full/ft_trigram_sorted_nopunc_2.l
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.mnop ~/ukwac/full/ft_trigram_sorted_nopunc_2.m ~/ukwac/full/ft_trigram_sorted_nopunc_2.n ~/ukwac/full/ft_trigram_sorted_nopunc_2.o ~/ukwac/full/ft_trigram_sorted_nopunc_2.p
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.qrstu ~/ukwac/full/ft_trigram_sorted_nopunc_2.q ~/ukwac/full/ft_trigram_sorted_nopunc_2.r ~/ukwac/full/ft_trigram_sorted_nopunc_2.s ~/ukwac/full/ft_trigram_sorted_nopunc_2.t ~/ukwac/full/ft_trigram_sorted_nopunc_2.u
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2.vwxyz ~/ukwac/full/ft_trigram_sorted_nopunc_2.v ~/ukwac/full/ft_trigram_sorted_nopunc_2.w ~/ukwac/full/ft_trigram_sorted_nopunc_2.x ~/ukwac/full/ft_trigram_sorted_nopunc_2.y ~/ukwac/full/ft_trigram_sorted_nopunc_2.z
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_sorted_nopunc_2 ~/ukwac/full/ft_trigram_sorted_nopunc_2.abcd ~/ukwac/full/ft_trigram_sorted_nopunc_2.efgh ~/ukwac/full/ft_trigram_sorted_nopunc_2.ijkl ~/ukwac/full/ft_trigram_sorted_nopunc_2.mnop ~/ukwac/full/ft_trigram_sorted_nopunc_2.qrstu ~/ukwac/full/ft_trigram_sorted_nopunc_2.vwxyz
 ionice -c 2 -n 7 python3 features.py ngrams merge < ~/ukwac/full/ft_trigram_sorted_nopunc_2 > ~/ukwac/full/ft_trigram_sorted_nopunc_2.merged
-ionice -c 2 -n 7 sort -r -n -k 1 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_final ~/ukwak/full/ft_trigram_sorted_nopunc_2.merged
+ionice -c 2 -n 7 sort -r -n -k 1 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_trigram_final ~/ukwac/full/ft_trigram_sorted_nopunc_2.merged
+
+
+# Creating bigrams, then filtering the ones containing punctuation (not filtering by counts)
+for X in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
+	ionice -c 2 -n 7 python3 features.py ngrams extract --ngram_size 2 --lemmatize < ~/ukwac/full/ft.$X > ~/ukwac/full/ft_bigram.$X
+	ionice -c 2 -n 7 sort -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted.$X ~/ukwac/full/ft_bigram.$X
+	ionice -c 2 -n 7 python3 features.py ngrams filter --exclude /home/beka/ukwac/punctlist < ~/ukwac/full/ft_bigram_sorted.$X > ~/ukwac/full/ft_bigram_sorted_nopunc.$X
+done
+
+# Merging all bigrams to one list
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.abcd ~/ukwac/full/ft_bigram_sorted_nopunc.a ~/ukwac/full/ft_bigram_sorted_nopunc.b ~/ukwac/full/ft_bigram_sorted_nopunc.c ~/ukwac/full/ft_bigram_sorted_nopunc.d
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.efgh ~/ukwac/full/ft_bigram_sorted_nopunc.e ~/ukwac/full/ft_bigram_sorted_nopunc.f ~/ukwac/full/ft_bigram_sorted_nopunc.g ~/ukwac/full/ft_bigram_sorted_nopunc.h
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.ijkl ~/ukwac/full/ft_bigram_sorted_nopunc.i ~/ukwac/full/ft_bigram_sorted_nopunc.j ~/ukwac/full/ft_bigram_sorted_nopunc.k ~/ukwac/full/ft_bigram_sorted_nopunc.l
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.mnop ~/ukwac/full/ft_bigram_sorted_nopunc.m ~/ukwac/full/ft_bigram_sorted_nopunc.n ~/ukwac/full/ft_bigram_sorted_nopunc.o ~/ukwac/full/ft_bigram_sorted_nopunc.p
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.qrstu ~/ukwac/full/ft_bigram_sorted_nopunc.q ~/ukwac/full/ft_bigram_sorted_nopunc.r ~/ukwac/full/ft_bigram_sorted_nopunc.s ~/ukwac/full/ft_bigram_sorted_nopunc.t ~/ukwac/full/ft_bigram_sorted_nopunc.u
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc.vwxyz ~/ukwac/full/ft_bigram_sorted_nopunc.v ~/ukwac/full/ft_bigram_sorted_nopunc.w ~/ukwac/full/ft_bigram_sorted_nopunc.x ~/ukwac/full/ft_bigram_sorted_nopunc.y ~/ukwac/full/ft_bigram_sorted_nopunc.z
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_sorted_nopunc ~/ukwac/full/ft_bigram_sorted_nopunc.abcd ~/ukwac/full/ft_bigram_sorted_nopunc.efgh ~/ukwac/full/ft_bigram_sorted_nopunc.ijkl ~/ukwac/full/ft_bigram_sorted_nopunc.mnop ~/ukwac/full/ft_bigram_sorted_nopunc.qrstu ~/ukwac/full/ft_bigram_sorted_nopunc.vwxyz
+ionice -c 2 -n 7 python3 features.py ngrams merge < ~/ukwac/full/ft_bigram_sorted_nopunc > ~/ukwac/full/ft_bigram_sorted_nopunc.merged
+ionice -c 2 -n 7 sort -r -n -k 1 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_bigram_final ~/ukwac/full/ft_bigram_sorted_nopunc.merged
+
+
+# Creating unigrams, then filtering the ones containing punctuation (not filtering by counts)
+for X in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
+	ionice -c 2 -n 7 python3 features.py ngrams extract --ngram_size 1 --lemmatize < ~/ukwac/full/ft.$X > ~/ukwac/full/ft_unigram.$X
+	ionice -c 2 -n 7 sort -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted.$X ~/ukwac/full/ft_unigram.$X
+	ionice -c 2 -n 7 python3 features.py ngrams filter --exclude /home/beka/ukwac/punctlist < ~/ukwac/full/ft_unigram_sorted.$X > ~/ukwac/full/ft_unigram_sorted_nopunc.$X
+done
+
+# Merging all unigrams to one list
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.abcd ~/ukwac/full/ft_unigram_sorted_nopunc.a ~/ukwac/full/ft_unigram_sorted_nopunc.b ~/ukwac/full/ft_unigram_sorted_nopunc.c ~/ukwac/full/ft_unigram_sorted_nopunc.d
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.efgh ~/ukwac/full/ft_unigram_sorted_nopunc.e ~/ukwac/full/ft_unigram_sorted_nopunc.f ~/ukwac/full/ft_unigram_sorted_nopunc.g ~/ukwac/full/ft_unigram_sorted_nopunc.h
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.ijkl ~/ukwac/full/ft_unigram_sorted_nopunc.i ~/ukwac/full/ft_unigram_sorted_nopunc.j ~/ukwac/full/ft_unigram_sorted_nopunc.k ~/ukwac/full/ft_unigram_sorted_nopunc.l
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.mnop ~/ukwac/full/ft_unigram_sorted_nopunc.m ~/ukwac/full/ft_unigram_sorted_nopunc.n ~/ukwac/full/ft_unigram_sorted_nopunc.o ~/ukwac/full/ft_unigram_sorted_nopunc.p
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.qrstu ~/ukwac/full/ft_unigram_sorted_nopunc.q ~/ukwac/full/ft_unigram_sorted_nopunc.r ~/ukwac/full/ft_unigram_sorted_nopunc.s ~/ukwac/full/ft_unigram_sorted_nopunc.t ~/ukwac/full/ft_unigram_sorted_nopunc.u
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc.vwxyz ~/ukwac/full/ft_unigram_sorted_nopunc.v ~/ukwac/full/ft_unigram_sorted_nopunc.w ~/ukwac/full/ft_unigram_sorted_nopunc.x ~/ukwac/full/ft_unigram_sorted_nopunc.y ~/ukwac/full/ft_unigram_sorted_nopunc.z
+ionice -c 2 -n 7 sort -m -k 2 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_sorted_nopunc ~/ukwac/full/ft_unigram_sorted_nopunc.abcd ~/ukwac/full/ft_unigram_sorted_nopunc.efgh ~/ukwac/full/ft_unigram_sorted_nopunc.ijkl ~/ukwac/full/ft_unigram_sorted_nopunc.mnop ~/ukwac/full/ft_unigram_sorted_nopunc.qrstu ~/ukwac/full/ft_unigram_sorted_nopunc.vwxyz
+ionice -c 2 -n 7 python3 features.py ngrams merge < ~/ukwac/full/ft_unigram_sorted_nopunc > ~/ukwac/full/ft_unigram_sorted_nopunc.merged
+ionice -c 2 -n 7 sort -r -n -k 1 -t$'\t' --parallel=4 -o ~/ukwac/full/ft_unigram_final ~/ukwac/full/ft_unigram_sorted_nopunc.merged
