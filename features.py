@@ -138,6 +138,27 @@ def merge_ngrams(lines):
     yield first
 
 
+def create_feature_counts(lines, features, pos=0):
+    """Yields all ngram counts who has a feature phrase in the given position.
+
+    Each ngram count in lines is tested for the existence of the feature phrase
+    in ngram[pos:pos+len(feature)], and if it matches the line is yielded.
+
+    Args:
+        lines: a generator of tab-separated strings of count-ngram pairs,
+        features: a sequence of feature tuples (of strings)
+        pos: position in thee ngram to match the feature, default 0
+
+    Yields:
+        matching lines of ngrams
+
+    """
+    for line in lines:
+        count, ngram = parse_ngram_line(line)
+        if any(ngram[pos:pos + len(x)] == x for x in features):
+            yield line
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -147,7 +168,7 @@ def print_progress(current, updated=[0]):
 def parse_cmd():
     """Parses and validates cmd line arguments, then return them."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=('ngrams',))
+    parser.add_argument('command', choices=('ngrams', 'counts'))
     parser.add_argument('action', choices=('extract', 'filter', 'merge'))
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
@@ -157,6 +178,8 @@ def parse_cmd():
     parser.add_argument('--threshold', type=int, default=1)
     parser.add_argument('--startswith')
     parser.add_argument('--endswith')
+    parser.add_argument('--targets')
+    parser.add_argument('--position', type=int, default=0)
 
     args = parser.parse_args()
     if args.exclude:
@@ -165,6 +188,9 @@ def parse_cmd():
         args.exclude = {x.strip() for x in tokens}
     else:
         args.exclude = set()
+    if args.targets:
+        with open(args.targets) as f:
+            args.targets = [tuple(x.strip().split(' ')) for x in f.readlines()]
 
     return args
 
@@ -202,6 +228,11 @@ def main():
     if args.command == 'ngrams' and args.action == 'merge':
         for new_line in merge_ngrams(sys.stdin):
             print(new_line, end='')
+
+    if args.command == 'counts' and args.action == 'extract':
+        for res in create_feature_counts(sys.stdin, args.targets,
+                                         args.position):
+            print(res, end='')
 
 
 if __name__ == '__main__':
