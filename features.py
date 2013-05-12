@@ -159,6 +159,27 @@ def create_feature_counts(lines, features, pos=0):
             yield line
 
 
+def calculate_ngram_features(lines, features, targets, divider=10**5):
+    """Returns a dictionary of feature scores for ngrams before/after.
+
+    Args:
+        lines: count-ngram lines with both the target and feature words in it
+        features: a sequence of feature tuples (of strings)
+        targets: a sequence of target words (strings)
+        divider: an integer to divide all counts by, for normalizing features
+
+    Returns:
+        a dictionary: {target1: {feat1_before: score, feat1_after: score ...}}
+
+    """
+    for line in lines:
+        count, ngram = parse_ngram_line(line)
+        if ngram[:-1] in features and ngram[-1] in targets:
+            print('{}\t{}_before\t{}'.format(ngram[-1], '_'.join(ngram[:-1]), count/divider))
+        if ngram[1:] in features and ngram[0] in targets:
+            print('{}\t{}_after\t{:12f}'.format(ngram[0], '_'.join(ngram[1:]), count/divider))
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -169,7 +190,8 @@ def parse_cmd():
     """Parses and validates cmd line arguments, then return them."""
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=('ngrams', 'counts'))
-    parser.add_argument('action', choices=('extract', 'filter', 'merge'))
+    parser.add_argument('action', choices=('extract', 'filter', 'merge',
+                                           'score'))
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
     parser.add_argument('--exclude')
@@ -179,6 +201,7 @@ def parse_cmd():
     parser.add_argument('--startswith')
     parser.add_argument('--endswith')
     parser.add_argument('--targets')
+    parser.add_argument('--featurewords')
     parser.add_argument('--position', type=int, default=0)
 
     args = parser.parse_args()
@@ -191,6 +214,10 @@ def parse_cmd():
     if args.targets:
         with open(args.targets) as f:
             args.targets = [tuple(x.strip().split(' ')) for x in f.readlines()]
+    if args.featurewords:
+        with open(args.featurewords) as f:
+            args.featurewords = [tuple(x.strip().split(' '))
+                                 for x in f.readlines()]
 
     return args
 
@@ -228,6 +255,11 @@ def main():
     if args.command == 'ngrams' and args.action == 'merge':
         for new_line in merge_ngrams(sys.stdin):
             print(new_line, end='')
+
+    if args.command == 'ngrams' and args.action == 'score':
+        targets = [x[0] for x in args.targets]  #converting from tuples to str
+        scores = calculate_ngram_features(sys.stdin, args.featurewords,
+                                          targets)
 
     if args.command == 'counts' and args.action == 'extract':
         for res in create_feature_counts(sys.stdin, args.targets,
