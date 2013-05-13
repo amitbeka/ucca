@@ -16,7 +16,7 @@ import string
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
-from ucca import core, layer0, layer1
+from ucca import core, layer0, layer1, util
 
 
 class SiteXMLUnknownElement(core.UCCAError):
@@ -438,3 +438,29 @@ def from_text(text, passage_id='1'):
             l0.add_terminal(text=token, punct=punct.match(token),
                             paragraph=(i + 1))
     return p
+
+
+def to_text(passage, sentences=True):
+    """Converts from a Passage object to tokenized strings.
+
+    Args:
+        passage: the Passage object to convert
+        sentences: whether to break the Passage to sentences (one for string)
+        or leave as one string. Defaults to True
+
+    Returns:
+        a list of strings - 1 if sentences=False, # of sentences otherwise
+
+    """
+    tokens = [x.text for x in sorted(passage.layer(layer0.LAYER_ID).all,
+                                     key=lambda x: x.position)]
+    # break2sentences return the positions of the end tokens, which is
+    # always the index into tokens incremented by ones (tokens index starts
+    # with 0, positions with 1). So in essence, it returns the index to start
+    # the next sentence from, and we should add index 0 for the first sentence
+    if sentences:
+        starts = [0] + util.break2sentences(passage)
+    else:
+        starts = [0, len(tokens)]
+    return [' '.join(tokens[starts[i]:starts[i+1]])
+            for i in range(len(starts) - 1)]

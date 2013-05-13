@@ -640,6 +640,13 @@ class ConversionTests(unittest.TestCase):
                                 terms[pos].paragraph == i + 1)
                 pos += 1
 
+    def test_to_text(self):
+        passage = convert.from_standard(self._load_xml('./standard3.xml'))
+        self.assertEqual(convert.to_text(passage, False)[0],
+                         '1 2 3 4 . 6 7 8 9 10 . 12 13 14 15')
+        self.assertSequenceEqual(convert.to_text(passage, True),
+                                 ['1 2 3 4 .', '6 7 8 9 10 .', '12 13 14 15'])
+
 
 class UtilTests(unittest.TestCase):
     """Tests the util module functions and classes."""
