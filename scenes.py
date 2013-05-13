@@ -5,6 +5,7 @@ in the foundational layer of UCCA.
 
 """
 
+import re
 from ucca import layer1
 
 
@@ -64,3 +65,26 @@ def extract_head(fnode):
         return fnode
     else:
         return None
+
+
+def filter_noun_heads(heads):
+    """Extract only the possible noun heads from the given FNodes.
+
+    Args:
+        heads: list of fnodes, each have at least one Terminal as a child,
+        and the Terminal have the attribute 'postag' in extra.
+
+    Returns:
+        a set of all tokens (Terminal text) which at least one of the postag
+        attributes for them where a noun (PTB POSTags).
+
+    """
+    out = set()
+    for head in heads:
+        try:  # handling implicit processes/centers
+            term = head.terminals[0]
+            if re.match(r'NN.+', term.extra['postag']):
+                out.add(term.text)
+        except IndexError:
+            pass
+    return out
