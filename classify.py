@@ -28,3 +28,16 @@ def create_feature_matrix(scores_fd, targets, features):
         t, f, s = line.strip().split('\t')  # target, feature name, score
         mat[targets.index(t), findex(f)] = float(s)
     return mat
+
+
+def evaluate_svm(fmat, labels, k=10):
+    """Evaluates linear kernel SVM with k-fold cross validation."""
+    svm = mlpy.LibSvm()
+    out = []
+    for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
+        svm.learn(fmat[tr], labels[tr])
+        pred = svm.pred(fmat[ts])
+        acc = sum(x == int(y) for x, y in zip(labels[ts], pred)) / len(labels)
+        print(acc)
+        out.append(acc)
+    return out
