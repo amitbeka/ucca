@@ -18,7 +18,7 @@ def main():
         heads = [x for x in heads if x is not None]
         nouns.update(scenes.filter_noun_heads(heads))
 
-    print(' '.join(nouns))
+    print('\n'.join(nouns))
 
 if __name__ == '__main__':
     main()
