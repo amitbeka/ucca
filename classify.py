@@ -30,14 +30,16 @@ def create_feature_matrix(scores_fd, targets, features):
     return mat
 
 
-def evaluate_svm(fmat, labels, k=10):
-    """Evaluates linear kernel SVM with k-fold cross validation."""
-    svm = mlpy.LibSvm()
+def evaluate(fmat, labels, method='svm', k=10):
+    """Evaluates linear kernel SVM/logistic regression with k-fold cross
+    validation."""
+    cls = mlpy.LibSvm() if method == 'svm' else mlpy.LibLinear()
     out = []
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
-        svm.learn(fmat[tr], labels[tr])
-        pred = svm.pred(fmat[ts])
-        acc = sum(x == int(y) for x, y in zip(labels[ts], pred)) / len(labels)
+        cls.learn(fmat[tr], labels[tr])
+        pred = cls.pred(fmat[ts])
+        import pdb; pdb.set_trace()
+        acc = sum(x == int(y) for x, y in zip(labels[ts], pred)) / len(ts)
         print(acc)
         out.append(acc)
     return out
