@@ -25,7 +25,7 @@ tags:
 	rm -f cscope.* tags
 	find `pwd` -name "*.py" > cscope.files
 	ctags --python-kinds=-i -L cscope.files
-	pycscope3 -R -i cscope.files
+	pycscope -R -i cscope.files
 
 test:
 	(cd ./tests && python3 -m unittest -v)
