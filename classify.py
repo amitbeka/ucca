@@ -1,5 +1,6 @@
 import mlpy
 import numpy as np
+import lex
 
 
 def create_targets_array(targets_fd):
@@ -42,3 +43,13 @@ def evaluate(fmat, labels, method='svm', k=10):
         print(acc)
         out.append(acc)
     return out
+
+
+def baseline(targets, collins_path, wikt_path):
+    """Classifies baseline by checking for zero or -ing derivations."""
+    form_ident = lex.FormIdentifier(collins_path, wikt_path)
+    labels = np.zeros(len(targets), dtype=np.int32)
+    for i, target in enumerate(targets):
+        if form_ident.is_dual_vn(target) or target.endswith('ing'):
+            labels[i] = 1
+    return labels
