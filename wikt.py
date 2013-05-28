@@ -126,6 +126,16 @@ class Wiktionary:
         return {e.lemma for e in self._entries[phrase]}
 
     def by_form(self, phrase):
+        """Returns a list of entries which have the phrase as their form.
+
+        Args:
+            phrase: the phrase to search for
+
+        Returns:
+            a list of all WiktEntry objects whose lemma is the given phrase,
+            or that appear as a lemma of this phrase WiktEntry.
+
+        """
         entries = []
         for e in self._entries.get(phrase, []):
             if e.phrase == e.lemma:
