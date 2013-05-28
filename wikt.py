@@ -100,7 +100,7 @@ class Wiktionary:
         # Phrase ==> possible lemmas ==> entries for these lemmas
         entries = []
         for orig_entry in self._entries[phrase]:
-            entries.extend(self._entries[orig_entry.lemma])
+            entries.extend(self._entries.get(orig_entry.lemma, []))
         if pos is None:
             return sorted(entries, key=lambda x: len(x.phrase))[0].lemma
         else:
