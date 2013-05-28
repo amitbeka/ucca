@@ -4,7 +4,7 @@ import nltk
 import pickle
 import xml.etree.ElementTree as ETree
 
-from ucca import collins, wikt
+from ucca import collins, wikt, core
 from ucca.postags import POSTags
 
 
@@ -150,3 +150,28 @@ class FormIdentifier:
         return (POSTags.Verb in possible_tags and
                 POSTags.Noun in possible_tags and
                 not lemmas.intersection(self.NonDualForms))
+
+    def lemmatize_noun(self, phrase):
+        """Tries to lemmatize the noun (plurals, capitalization), returns
+        a lemma or the same phrase if not found."""
+        # If Witkionary had an exact match, take it
+        try:
+            wikt_lemma = self.wikt.lemmatize(phrase, POSTags.Noun)
+            return wikt_lemma
+        except core.UCCAError:
+            pass
+
+        # If we're not sure, always take the lemma that appears most common
+        wikt_entries = self.wikt.by_form(phrase)
+        coll_entries = self.collins.by_form(phrase)
+        lemmas = [e.lemma for e in wikt_entries if e.pos == POSTags.Noun]
+        lemmas.extend(x.key for x in coll_entries
+                      if any(sense.pos == POSTags.Noun for sense in x.senses))
+        if lemmas:
+            return max(set(lemmas), key=lemmas.count)
+
+        # if not found, try to lowercase if starts with an uppercase
+        if phrase.istitle():
+            lemma = self.lemmatize_noun(phrase.lower())
+            return lemma
+        return phrase  # failed to found the phrase anywhere
