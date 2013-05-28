@@ -38,7 +38,6 @@ def evaluate(fmat, labels, method='svm', k=10):
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
         cls.learn(fmat[tr], labels[tr])
         pred = cls.pred(fmat[ts])
-        import pdb; pdb.set_trace()
         acc = sum(x == int(y) for x, y in zip(labels[ts], pred)) / len(ts)
         print(acc)
         out.append(acc)
