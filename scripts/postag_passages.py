@@ -14,10 +14,11 @@ def main():
             tokens = []
             for line in f:
                 tokens.extend(line.split())
-            for token, terminal in zip(tokens, p.layer('0').all):
-                print(token, terminal.text)
-                word, tag = token.split('_')
-                terminal.extra['postag'] = tag
+            for terminal in p.layer('0').all:
+                num_tokens = len(terminal.text.split())
+                curr, tokens = tokens[:num_tokens], tokens[num_tokens:]
+                tags = [x.split('_')[1] for x in curr]
+                terminal.extra['postag'] = " ".join(tags)
     with open(dbpath + '.tags', 'wb') as f:
         pickle.dump(passages, f)
 
