@@ -111,3 +111,33 @@ def extract_all_nouns(passages):
                    for tag in term.extra['postag'].split()):
                 nouns[term.text] = nouns.get(term.text, []) + [term]
     return nouns
+
+
+def is_scene_evoking(terminal):
+    """Returns whether the Terminal object is a scene-evoker.
+
+    Scene-evoking Terminals are ones which are the head of a Process/State,
+    where a head is the (recursive) only Center of an FNode (non-remote).
+
+    Args:
+        terminal: a layer0.Terminal object to check
+
+    Returns:
+        True iff the terminal given is a head of a scene (scene-evoker).
+
+    """
+    if not terminal.parents:
+        return False
+    fnode = terminal.parents[0]
+    if fnode.tag != layer1.NodeTags.Foundational:
+        return False
+    while fnode:
+        if len(fnode.centers) > 1:  # multiple centers, can't have a head
+            break
+        elif fnode.ftag in (layer1.EdgeTags.Process, layer1.EdgeTags.State):
+            return True
+        elif fnode.ftag == layer1.EdgeTags.Center:
+            fnode = fnode.fparent
+        else:
+            break
+    return False
