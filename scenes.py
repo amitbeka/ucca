@@ -6,7 +6,7 @@ in the foundational layer of UCCA.
 """
 
 import re
-from ucca import layer1
+from ucca import layer0, layer1
 
 
 def extract_possible_scenes(passage):
@@ -88,3 +88,26 @@ def filter_noun_heads(heads):
         except IndexError:
             pass
     return out
+
+
+def extract_all_nouns(passages):
+    """Extract all nouns in passages and their location.
+
+    Extracted nouns are either single words with PTB POS tag of a noun,
+    or phrases where all words are tagged as nouns.
+
+    Args:
+        passages: sequence of core.Passage object to extract nouns from.
+        All Terminals should have the attribute 'postag' in extra data.
+
+    Returns:
+        dictionary of noun: [Terminal1, Terminal2 ...] where they appear.
+
+    """
+    nouns = {}
+    for passage in passages:
+        for term in passage.layer(layer0.LAYER_ID).all:
+            if all(re.match(r'NN.+', tag)
+                   for tag in term.extra['postag'].split()):
+                nouns[term.text] = nouns.get(term.text, []) + [term]
+    return nouns
