@@ -39,9 +39,27 @@ def evaluate(fmat, labels, method='svm', k=10):
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
         cls.learn(fmat[tr], labels[tr])
         pred = cls.pred(fmat[ts])
-        acc = sum(x == int(y) for x, y in zip(labels[ts], pred)) / len(ts)
-        print(acc)
-        out.append(acc)
+        tp = [x == int(y) == 1
+              for x, y in zip(labels[ts], pred)].count(True)
+        tn = [x == int(y) == 0
+              for x, y in zip(labels[ts], pred)].count(True)
+        fp = [x == 0 and int(y) == 1
+              for x, y in zip(labels[ts], pred)].count(True)
+        fn = [x == 1 and int(y) == 0
+              for x, y in zip(labels[ts], pred)].count(True)
+        try:
+            precision = tp / (tp + fp)
+        except:
+            precision = -1
+        try:
+            recall = tp / (tp + fn)
+        except:
+            recall = -1
+        try:
+            accuracy = (tp + tn) / (tp + tn + fp + fn)
+        except:
+            accuracy = -1
+        out.append((precision, recall, accuracy))
     return out
 
 
