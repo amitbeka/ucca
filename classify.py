@@ -53,3 +53,20 @@ def baseline(targets, collins_path, wikt_path):
         if form_ident.is_dual_vn(target) or target.endswith('ing'):
             labels[i] = 1
     return labels
+
+
+def evaluate_bl(labels_known, labels_guessed):
+    """Evaluates the baseline, returns precision, recall and accuracy"""
+    # True/False positive/negatives
+    tp = [x == y == 1
+          for x, y in zip(labels_known, labels_guessed)].count(True)
+    tn = [x == y == 0
+          for x, y in zip(labels_known, labels_guessed)].count(True)
+    fp = [x == 0 and y == 1
+          for x, y in zip(labels_known, labels_guessed)].count(True)
+    fn = [x == 1 and y == 0
+          for x, y in zip(labels_known, labels_guessed)].count(True)
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    return (precision, recall, accuracy)
