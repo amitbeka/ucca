@@ -180,6 +180,12 @@ def calculate_ngram_features(lines, features, targets, divider=10**5):
             print('{}\t{}_after\t{:12f}'.format(ngram[0], '_'.join(ngram[1:]), count/divider))
 
 
+def has_suffix(targets, suffix):
+    """0/1 tuple if suffix string applies to the end of the targets."""
+    # targets are tuples, but we deal only with 1-word targets
+    return tuple(int(x[0].endswith(suffix)) for x in targets)
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -189,7 +195,7 @@ def print_progress(current, updated=[0]):
 def parse_cmd():
     """Parses and validates cmd line arguments, then return them."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('command', choices=('ngrams', 'counts'))
+    parser.add_argument('command', choices=('ngrams', 'counts', 'morph'))
     parser.add_argument('action', choices=('extract', 'filter', 'merge',
                                            'score'))
     parser.add_argument('--ngram_size', type=int, default=1)
@@ -203,6 +209,7 @@ def parse_cmd():
     parser.add_argument('--targets')
     parser.add_argument('--featurewords')
     parser.add_argument('--position', type=int, default=0)
+    parser.add_argument('--suffixes')
 
     args = parser.parse_args()
     if args.exclude:
@@ -218,6 +225,9 @@ def parse_cmd():
         with open(args.featurewords) as f:
             args.featurewords = [tuple(x.strip().split(' '))
                                  for x in f.readlines()]
+    if args.suffixes:
+        with open(args.suffixes) as f:
+            args.suffixes = tuple(x.strip() for x in f)
 
     return args
 
@@ -265,6 +275,11 @@ def main():
         for res in create_feature_counts(sys.stdin, args.targets,
                                          args.position):
             print(res, end='')
+
+    if args.command == 'morph' and args.action == 'extract':
+        print("\n".join(" ".join(str(x) for x in
+                                 has_suffix(args.targets, suffix))
+                        for suffix in args.suffixes))
 
 
 if __name__ == '__main__':
