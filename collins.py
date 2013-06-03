@@ -164,3 +164,21 @@ class CollinsDictionary:
         """
         st = nltk.stem.snowball.EnglishStemmer()
         return [v for v in self._entries.values() if st.stem(v.key) == stem]
+
+    def random_entry(self, postag):
+        """Returns a random entry from the dictionary.
+
+        Args:
+            poastag: the POSTag that the random entry should match.
+            At least one of the senses must have it.
+
+        Returns:
+            an Entry object
+
+        """
+        keys = list(self._entries.keys())
+        while True:
+            candidate = self._entries[random.choice(keys)]
+            if any(s.pos == postag for s in candidate.senses):
+                break
+        return candidate
