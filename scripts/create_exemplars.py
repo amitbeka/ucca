@@ -1,0 +1,34 @@
+"""Creates new examplers from Collins entries."""
+import pickle
+import sys
+import random
+from ucca import collins
+from ucca.postags import POSTags
+
+
+def main():
+    with open("/home/beka/thesis/resources/collins/collins.pickle", "rb") as f:
+        col = collins.CollinsDictionary(pickle.load(f))
+    with open(sys.argv[1]) as f:
+        nouns = {k: v for line in f if line for k, v in line.strip().split()}
+    with open(sys.argv[1] + '.new', 'wt') as f:
+        while True:
+            entry = col.random_entry(POSTags.Noun)
+            while entry.key in nouns:
+                entry = col.random_entry(POSTags.Noun)
+            print("\n\n\n{}#{}".format(entry.key, entry.context))
+            print("\n===\n".join(str(s) for s in entry.senses))
+            user = input("select 0-5, Q or anything else to skip: ")
+            if user == 'Q':
+                break
+            try:
+                score = int(user)
+                assert 0 <= score <= 5
+            except:
+                continue
+            f.write("{} {}\n".format(entry.key, score / 5))
+            f.flush()
+
+
+if __name__ == '__main__':
+    main()
