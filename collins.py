@@ -6,6 +6,7 @@ some self-explained keys and values (and some errors too).
 """
 
 import nltk
+import random
 
 from ucca.postags import POSTags
 
@@ -34,11 +35,13 @@ class Entry:
 
         A sense is composed of a meaning with examples, part-of-speech tag and
         other relevant data, but currently only the part-of-speech tag and
-        usage line are parsed.
+        usage line are extracted, and the examples + description are saved as
+        is.
 
         Attributes:
             pos: part-of-speech tag
             usage: usage line, with its members separated by tabs
+            desc: description and examples
 
         """
 
@@ -51,6 +54,7 @@ class Entry:
         def __init__(self, sense_dic):
             self.usage = '\t'.join(sense_dic['POS'])
             self.pos = POSTags.Other
+            self.desc = "\n".join([sense_dic['def']] + sense_dic['examples'])
             if not sense_dic['POS']:
                 return
             for pattern, tag in self._tags.items():
@@ -59,7 +63,9 @@ class Entry:
                     break
 
         def __str__(self):
-            return "Part-of-speech: {}\nUsage: {}".format(self.pos, self.usage)
+            return "Part-of-speech: {}\nUsage: {}\n{}".format(self.pos,
+                                                              self.usage,
+                                                              self.desc)
 
     def __init__(self, key, forms, senses, context=None):
         """Initializes the class instance.
