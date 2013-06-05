@@ -10,7 +10,8 @@ def main():
     with open("/home/beka/thesis/resources/collins/collins.pickle", "rb") as f:
         col = collins.CollinsDictionary(pickle.load(f))
     with open(sys.argv[1]) as f:
-        nouns = {k: v for line in f if line for k, v in line.strip().split()}
+        data = [line.strip().split('\t') for line in f if line.strip()]
+        nouns = {k: float(v) for k, v in data}
     with open(sys.argv[1] + '.new', 'wt') as f:
         skipped = set()
         while True:
@@ -29,7 +30,7 @@ def main():
             except:
                 skipped.add(entry.key)
                 continue
-            f.write("{} {}\n".format(entry.key, score / 5))
+            f.write("{}\t{}\n".format(entry.key, score / 5))
             f.flush()
 
 
