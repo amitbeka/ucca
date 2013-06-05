@@ -12,9 +12,10 @@ def main():
     with open(sys.argv[1]) as f:
         nouns = {k: v for line in f if line for k, v in line.strip().split()}
     with open(sys.argv[1] + '.new', 'wt') as f:
+        skipped = set()
         while True:
             entry = col.random_entry(POSTags.Noun)
-            while entry.key in nouns:
+            while entry.key in nouns or entry.key in skipped:
                 entry = col.random_entry(POSTags.Noun)
             print("\n\n\n{}#{}".format(entry.key, entry.context))
             print("\n===\n".join(str(s) for s in entry.senses))
@@ -24,7 +25,9 @@ def main():
             try:
                 score = int(user)
                 assert 0 <= score <= 5
+                nouns[entry.key] = score
             except:
+                skipped.add(entry.key)
                 continue
             f.write("{} {}\n".format(entry.key, score / 5))
             f.flush()
