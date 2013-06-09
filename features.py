@@ -10,6 +10,7 @@ UCCA passages is also covered.
 import argparse
 import sys
 import nltk
+from ucca import lex
 
 
 DEFAULT_CHUNK_SIZE = 2 ** 20
@@ -219,6 +220,8 @@ def parse_cmd():
     parser.add_argument('--position', type=int, default=0)
     parser.add_argument('--suffixes')
     parser.add_argument('--prefixes')
+    parser.add_argument('--collins')
+    parser.add_argument('--wiktionary')
 
     args = parser.parse_args()
     if args.exclude:
@@ -294,6 +297,14 @@ def main():
                for suffix in args.suffixes]
         res += [" ".join(str(x) for x in has_prefix(args.targets, prefix))
                 for prefix in args.prefixes]
+        form_ident = lex.FormIdentifier(args.collins, args.wiktionary)
+        dual_vn = []
+        for target in args.targets:
+            if len(target) == 1 and form_ident.is_dual_vn(target[0]):
+                dual_vn.append('1')
+            else:
+                dual_vn.append('0')
+        res.append(" ".join(dual_vn))
         print("\n".join(res))
 
 
