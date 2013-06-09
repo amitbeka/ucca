@@ -188,6 +188,12 @@ def has_suffix(targets, suffix):
     return tuple(int(x[0].endswith(suffix)) for x in targets)
 
 
+def has_prefix(targets, prefix):
+    """0/1 tuple if prefix string applies to the start of the targets."""
+    # targets are tuples, but we deal only with 1-word targets
+    return tuple(int(x[0].startswith(prefix)) for x in targets)
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -212,6 +218,7 @@ def parse_cmd():
     parser.add_argument('--featurewords')
     parser.add_argument('--position', type=int, default=0)
     parser.add_argument('--suffixes')
+    parser.add_argument('--prefixes')
 
     args = parser.parse_args()
     if args.exclude:
@@ -230,6 +237,10 @@ def parse_cmd():
     if args.suffixes:
         with open(args.suffixes) as f:
             args.suffixes = tuple(x.strip() for x in f)
+
+    if args.prefixes:
+        with open(args.prefixes) as f:
+            args.prefixes = tuple(x.strip() for x in f)
 
     return args
 
@@ -279,9 +290,11 @@ def main():
             print(res, end='')
 
     if args.command == 'morph' and args.action == 'extract':
-        print("\n".join(" ".join(str(x) for x in
-                                 has_suffix(args.targets, suffix))
-                        for suffix in args.suffixes))
+        res = [" ".join(str(x) for x in has_suffix(args.targets, suffix))
+               for suffix in args.suffixes]
+        res += [" ".join(str(x) for x in has_prefix(args.targets, prefix))
+                for prefix in args.prefixes]
+        print("\n".join(res))
 
 
 if __name__ == '__main__':
