@@ -1,6 +1,6 @@
 import mlpy
 import numpy as np
-import lex
+from ucca import lex
 
 
 def create_targets_array(targets_fd):
