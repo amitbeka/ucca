@@ -116,7 +116,7 @@ class CoreTests(unittest.TestCase):
         self.assertSequenceEqual(l1.heads, [node12, node14, node15])
         node15.add('test', node11)
         self.assertSequenceEqual(node11.parents, [node12, node15, node21,
-                                                 node22])
+                                                  node22])
         node21.remove(node12)
         node21.remove(node21[0])
         self.assertEqual(len(node21), 0)

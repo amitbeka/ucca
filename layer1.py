@@ -267,8 +267,8 @@ class FoundationalNode(core.Node):
         """Returns the Edge of the fparent, or None."""
         for edge in self.incoming:
             if (edge.parent.layer.ID == LAYER_ID and
-                edge.parent.tag == NodeTags.Foundational and
-                not edge.attrib.get('remote')):
+                    edge.parent.tag == NodeTags.Foundational and
+                    not edge.attrib.get('remote')):
                 return edge
         return None
 
@@ -297,7 +297,7 @@ class FoundationalNode(core.Node):
         terms = []
         for edge in list(self):
             if ((edge.attrib.get('remote', False) and not remotes) or
-                (edge.tag == EdgeTags.Punctuation and not punct)):
+                    (edge.tag == EdgeTags.Punctuation and not punct)):
                 continue
             elif edge.tag == EdgeTags.Terminal:
                 terms.append(edge.child)

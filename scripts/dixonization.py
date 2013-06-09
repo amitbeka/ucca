@@ -53,12 +53,14 @@ def main():
     parser.add_argument('-v', '--verbs',
                         default='/home/beka/thesis/resources/dixon-verbs.xml',
                         help="Dixon's verb categories in XML file")
-    parser.add_argument('-c', '--collins',
-                default='/home/beka/thesis/resources/collins/collins.pickle',
-                help="Collins parsed dictionary in pickle file")
-    parser.add_argument('-w', '--wiktionary',
-            default='/home/beka/thesis/resources/enwikt-defs-latest-en.tsv',
-            help="Wiktionary definitions only in tab-separated format")
+    parser.add_argument(
+        '-c', '--collins',
+        default='/home/beka/thesis/resources/collins/collins.pickle',
+        help="Collins parsed dictionary in pickle file")
+    parser.add_argument(
+        '-w', '--wiktionary',
+        default='/home/beka/thesis/resources/enwikt-defs-latest-en.tsv',
+        help="Wiktionary definitions only in tab-separated format")
 
     args = parser.parse_args()
     eng = lex.DixonIdentifier(args.verbs, args.collins, args.wiktionary)

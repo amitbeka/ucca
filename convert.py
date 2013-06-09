@@ -97,8 +97,7 @@ class SiteCfg:
                      'Ground': layer1.EdgeTags.Ground,
                      'Connector': layer1.EdgeTags.Connector,
                      'Role Marker': layer1.EdgeTags.Relator,
-                     'Relator': layer1.EdgeTags.Relator,
-                    }
+                     'Relator': layer1.EdgeTags.Relator}
 
 
 class SiteUtil:
@@ -136,7 +135,7 @@ def _from_site_terminals(elem, passage, elem2node):
     """
     l0 = layer0.Layer0(passage)
     for para_num, paragraph in enumerate(elem.iterfind(
-                                            SiteCfg.Paths.Paragraphs)):
+            SiteCfg.Paths.Paragraphs)):
         words = list(paragraph.iter(SiteCfg.Tags.Terminal))
         wrappers = []
         for word in words:
@@ -331,8 +330,8 @@ def to_standard(passage):
     stringify = lambda dic: {str(k): str(v) for k, v in dic.items()}
 
     # Utility to add an extra element if exists in the object
-    add_extra = lambda obj, elem: obj.extra and ET.SubElement(elem, 'extra',
-                                                        stringify(obj.extra))
+    add_extra = lambda obj, elem: obj.extra and ET.SubElement(
+        elem, 'extra', stringify(obj.extra))
 
     # Adds attributes element (even if empty)
     add_attrib = lambda obj, elem: ET.SubElement(elem, 'attributes',
@@ -462,5 +461,5 @@ def to_text(passage, sentences=True):
         starts = [0] + util.break2sentences(passage)
     else:
         starts = [0, len(tokens)]
-    return [' '.join(tokens[starts[i]:starts[i+1]])
+    return [' '.join(tokens[starts[i]:starts[i + 1]])
             for i in range(len(starts) - 1)]

@@ -159,7 +159,7 @@ def create_feature_counts(lines, features, pos=0):
             yield line
 
 
-def calculate_ngram_features(lines, features, targets, divider=10**5):
+def calculate_ngram_features(lines, features, targets, divider=10 ** 5):
     """Returns a dictionary of feature scores for ngrams before/after.
 
     Args:
@@ -175,9 +175,11 @@ def calculate_ngram_features(lines, features, targets, divider=10**5):
     for line in lines:
         count, ngram = parse_ngram_line(line)
         if ngram[:-1] in features and ngram[-1] in targets:
-            print('{}\t{}_before\t{}'.format(ngram[-1], '_'.join(ngram[:-1]), count/divider))
+            print('{}\t{}_before\t{}'.format(ngram[-1], '_'.join(ngram[:-1]),
+                                             count / divider))
         if ngram[1:] in features and ngram[0] in targets:
-            print('{}\t{}_after\t{:12f}'.format(ngram[0], '_'.join(ngram[1:]), count/divider))
+            print('{}\t{}_after\t{:12f}'.format(ngram[0], '_'.join(ngram[1:]),
+                                                count / divider))
 
 
 def has_suffix(targets, suffix):
@@ -240,14 +242,14 @@ def main():
         for data in chunks(sys.stdin):
             sentences = tokenize(data)
             counts = extract_ngrams(args.ngram_size, sentences, counts,
-                                   lemmatize=args.lemmatize)
+                                    lemmatize=args.lemmatize)
             print_progress(len(sentences))
         print("Finished processing", file=sys.stderr)
         if args.sort:
             sorted_counts = sorted(counts.items(), key=lambda x: x[1],
                                    reverse=True)
             print('\n'.join('\t'.join([str(value), ' '.join(ngram)])
-                        for ngram, value in sorted_counts))
+                            for ngram, value in sorted_counts))
         else:
             for ngram, value in counts.items():
                 print('\t'.join([str(value), ' '.join(ngram)]))
@@ -267,7 +269,7 @@ def main():
             print(new_line, end='')
 
     if args.command == 'ngrams' and args.action == 'score':
-        targets = [x[0] for x in args.targets]  #converting from tuples to str
+        targets = [x[0] for x in args.targets]  # converting from tuples to str
         scores = calculate_ngram_features(sys.stdin, args.featurewords,
                                           targets)
 
