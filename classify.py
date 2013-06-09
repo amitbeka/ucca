@@ -50,15 +50,15 @@ def evaluate(fmat, labels, method='svm', k=10):
         try:
             precision = tp / (tp + fp)
         except:
-            precision = -1
+            precision = None
         try:
             recall = tp / (tp + fn)
         except:
-            recall = -1
+            recall = None
         try:
             accuracy = (tp + tn) / (tp + tn + fp + fn)
         except:
-            accuracy = -1
+            accuracy = None
         out.append((precision, recall, accuracy))
     return out
 
