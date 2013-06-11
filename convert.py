@@ -49,7 +49,15 @@ class SiteCfg:
              because we set it for every unit that was already converted, and
              it's not present in the original XML.
 
+        TBD: XML tag used for wrapping words (non-puntuation) and unit groups
+
+        TRUE, FALSE: values for True/False in the site XML (strings)
+
+        SchemeVersion: version of site XML scheme which self adheres to
+
         TagConversion: mapping of site XML tag attribute to layer1 edge tags.
+
+        EdgeConversion: mapping of layer1.EdgeTags to site XML tag attributes.
 
     """
 
@@ -75,15 +83,21 @@ class SiteCfg:
         NodeID = 'internal_id'
         ElemTag = 'type'
         Uncertain = 'uncertain'
+        Unanalyzable = 'unanalyzable'
         Remarks = 'remarks'
         GroupID = 'unitGroupID'
         LinkageArgs = 'args'
+        Suggestion = 'suggestion'
 
     __init__ = None
     Tags = _Tags
     Paths = _Paths
     Types = _Types
     Attr = _Attr
+    TBD = 'To Be Defined'
+    TRUE = 'true'
+    FALSE = 'false'
+    SchemeVersion = '1.0.3'
     TagConversion = {'Linked U': layer1.EdgeTags.ParallelScene,
                      'Parallel Scene': layer1.EdgeTags.ParallelScene,
                      'Function': layer1.EdgeTags.Function,
@@ -98,6 +112,19 @@ class SiteCfg:
                      'Connector': layer1.EdgeTags.Connector,
                      'Role Marker': layer1.EdgeTags.Relator,
                      'Relator': layer1.EdgeTags.Relator}
+
+    EdgeConversion = {layer1.EdgeTags.ParallelScene: 'Parallel Scene',
+                      layer1.EdgeTags.Function: 'Function',
+                      layer1.EdgeTags.Participant: 'Participant',
+                      layer1.EdgeTags.Process: 'Process',
+                      layer1.EdgeTags.State: 'State',
+                      layer1.EdgeTags.Adverbial: 'aDverbial',
+                      layer1.EdgeTags.Center: 'Center',
+                      layer1.EdgeTags.Elaborator: 'Elaborator',
+                      layer1.EdgeTags.Linker: 'Linker',
+                      layer1.EdgeTags.Ground: 'Ground',
+                      layer1.EdgeTags.Connector: 'Connector',
+                      layer1.EdgeTags.Relator: 'Relator'}
 
 
 class SiteUtil:
@@ -308,6 +335,159 @@ def from_site(elem):
     _from_site_terminals(elem, passage, elem2node)
     _from_site_annotation(elem, passage, elem2node)
     return passage
+
+
+def to_site(passage):
+    """Converts a passage to the site XML format."""
+
+    class _State:
+        def __init__(self):
+            self.ID = 2
+            self.mapping = {}
+            self.elems = {}
+
+        def get_id(self):
+            ID = str(self.ID)
+            self.ID += 1
+            return ID
+
+        def update(self, elem, node):
+            self.mapping[node.ID] = elem.get(SiteCfg.Attr.SiteID)
+            self.elems[node.ID] = elem
+
+    state = _State()
+
+    def _word(terminal):
+        tag = SiteCfg.Types.Punct if terminal.punct else SiteCfg.TBD
+        word = ET.Element(SiteCfg.Tags.Terminal,
+                          {SiteCfg.Attr.SiteID: state.get_id()})
+        word.text = terminal.text
+        elem = ET.Element(SiteCfg.Tags.Unit,
+                          {SiteCfg.Attr.ElemTag: tag,
+                           SiteCfg.Attr.SiteID: state.get_id(),
+                           SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE,
+                           SiteCfg.Attr.Uncertain: SiteCfg.FALSE})
+        elem.append(word)
+        state.update(elem, terminal)
+        return elem
+
+    def _cunit(node, subelem):
+        uncertain = (SiteCfg.TRUE if node.attrib.get('uncertain')
+                     else SiteCfg.FALSE)
+        suggestion = (SiteCfg.TRUE if node.attrib.get('suggest')
+                      else SiteCfg.FALSE)
+        unanalyzable = (
+            SiteCfg.TRUE if len(node) > 1 and all(
+                e.tag in (layer1.EdgeTags.Terminal,
+                          layer1.EdgeTags.Punctuation)
+                for e in node)
+            else SiteCfg.FALSE)
+        elem_type = (SiteCfg.Tags.Implicit if node.attrib.get('implicit')
+                     else SiteCfg.Tags.Unit)
+        elem_tag = SiteCfg.EdgeConversion[node.ftag]
+        elem = ET.Element(elem_type,
+                          {SiteCfg.Attr.ElemTag: elem_tag,
+                           SiteCfg.Attr.SiteID: state.get_id(),
+                           SiteCfg.Attr.Unanalyzable: unanalyzable,
+                           SiteCfg.Attr.Uncertain: uncertain,
+                           SiteCfg.Attr.Suggestion: suggestion})
+        if subelem is not None:
+            elem.append(subelem)
+        # When we add chunks of discontiguous units, we don't want them to
+        # overwrite the original mapping (leave it to the unitGroupId)
+        if node.ID not in state.mapping:
+            state.update(elem, node)
+        return elem
+
+    def _remote(edge):
+        uncertain = (SiteCfg.TRUE if edge.child.attrib.get('uncertain')
+                     else SiteCfg.FALSE)
+        suggestion = (SiteCfg.TRUE if edge.child.attrib.get('suggest')
+                      else SiteCfg.FALSE)
+        elem = ET.Element(SiteCfg.Tags.Remote,
+                          {SiteCfg.Attr.ElemTag:
+                           SiteCfg.EdgeConversion[edge.tag],
+                           SiteCfg.Attr.SiteID: state.mapping[edge.child.ID],
+                           SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE,
+                           SiteCfg.Attr.Uncertain: uncertain,
+                           SiteCfg.Attr.Suggestion: suggestion})
+        state.elems[edge.parent.ID].insert(0, elem)
+
+    def _linkage(link):
+        args = [str(state.mapping[x.ID]) for x in link.arguments]
+        linker_elem = state.elems[link.relation.ID]
+        linkage = ET.Element(SiteCfg.Tags.Linkage, {'args': ','.join(args)})
+        linker_elem.insert(0, linkage)
+
+    def _get_parent(node):
+        try:
+            parent = node.parents[0]
+            if parent.tag == layer1.NodeTags.Punctuation:
+                parent = parent.parents[0]
+            if parent in passage.layer(layer1.LAYER_ID).heads:
+                parent = None  # the parent is the fake FNodes head
+        except IndexError:
+            parent = None
+        return parent
+
+    # The method for checking discontinuity is already found in FNode.__str__
+    # ... is not a possible word as punctuation is split in tokenization
+    is_split = lambda x: x.layer == layer1.LAYER_ID and '...' in str(x)
+
+    elems_root = ET.Element(
+        SiteCfg.Tags.Unit,
+        {SiteCfg.Attr.ElemTag: SiteCfg.TBD, SiteCfg.Attr.SiteID: '1',
+         SiteCfg.Attr.Uncertain: SiteCfg.FALSE,
+         SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE})
+
+    # The IDs are used to check whether a parent should be real or a chunk
+    # of a larger unit -- in the latter case we need the new ID
+    split_ids = [ID for ID, node in passage.nodes.items() if is_split(node)]
+    unit_groups = [_cunit(passage.by_id(ID), None) for ID in split_ids]
+    state.elems.update((ID, elem) for ID, elem in zip(split_ids, unit_groups))
+
+    for term in sorted(list(passage.layer(layer0.LAYER_ID).all),
+                       key=lambda x: x.position):
+        unit = _word(term)
+        parent = _get_parent(term)
+        while parent is not None:
+            if parent.ID in state.mapping:
+                state.elems[parent.ID].append(unit)
+                break
+            elem = _cunit(parent, unit)
+            if parent.ID in split_ids:
+                elem.set(SiteCfg.Attr.ElemTag, SiteCfg.TBD)
+                elem.set(SiteCfg.Attr.GroupID, state.mapping[parent.ID])
+            unit = elem
+            parent = _get_parent(parent)
+        # The uppermost unit (w.o parents) should be the subelement of the root
+        if parent is None:
+            elems_root.append(unit)
+
+    # Handling remotes, references and linkages
+    for remote in [edge for node in passage.layer(layer1.LAYER_ID).all
+                   for edge in node
+                   if edge.attrib.get('remote')]:
+        _remote(remote)
+    for linkage in filter(lambda x: x.tag == layer1.NodeTags.Linkage,
+                          passage.layer(layer1.LAYER_ID).heads):
+        _linkage(linkage)
+
+    # Creating the XML tree
+    root = ET.Element('root', {'schemeVersion': SiteCfg.SchemeVersion})
+    groups = ET.SubElement(root, 'unitGroups')
+    groups.extend(unit_groups)
+    units = ET.SubElement(root, 'units', {SiteCfg.Attr.PassageID: passage.ID})
+    units0 = ET.SubElement(units, SiteCfg.Tags.Unit,
+                           {SiteCfg.Attr.ElemTag: SiteCfg.TBD,
+                            SiteCfg.Attr.SiteID: '0',
+                            SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE,
+                            SiteCfg.Attr.Uncertain: SiteCfg.FALSE})
+    units0.append(elems_root)
+    ET.SubElement(root, 'LRUunits')
+    ET.SubElement(root, 'hiddenUnits')
+
+    return root
 
 
 def to_standard(passage):

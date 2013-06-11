@@ -647,6 +647,12 @@ class ConversionTests(unittest.TestCase):
         self.assertSequenceEqual(convert.to_text(passage, True),
                                  ['1 2 3 4 .', '6 7 8 9 10 .', '12 13 14 15'])
 
+    def test_to_site(self):
+        passage = convert.from_standard(self._load_xml('./standard3.xml'))
+        root = convert.to_site(passage)
+        ref = self._load_xml('./site4.xml')
+        self.assertEqual(ETree.tostring(root), ETree.tostring(ref))
+
 
 class UtilTests(unittest.TestCase):
     """Tests the util module functions and classes."""
