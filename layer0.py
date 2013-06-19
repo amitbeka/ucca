@@ -84,14 +84,19 @@ class Terminal(core.Node):
 
         """
         return (self.layer.ID == other.layer.ID and self.text == other.text
-                and self.position == other.position and self.tag == other.tag)
+                and self.position == other.position and self.tag == other.tag
+                and self.paragraph == other.paragraph
+                and self.para_pos == other.para_pos)
 
     def __eq__(self, other):
         """Equals if both of the same Passage, Layer, position, tag & text."""
         if other.layer.ID != LAYER_ID:
             return False
-        return (self.root == other.root and self.position == other.position
-                and self.text == other.text and self.tag == other.tag)
+        return (self.root == other.root and self.layer.ID == other.layer.ID
+                and self.position == other.position
+                and self.text == other.text and self.tag == other.tag
+                and self.paragraph == other.paragraph
+                and self.para_pos == other.para_pos)
 
     def __hash__(self):
         """Hashes the Terminals aacording to its ID and text."""
