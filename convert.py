@@ -382,10 +382,8 @@ def to_site(passage):
                           layer1.EdgeTags.Punctuation)
                 for e in node)
             else SiteCfg.FALSE)
-        elem_type = (SiteCfg.Tags.Implicit if node.attrib.get('implicit')
-                     else SiteCfg.Tags.Unit)
         elem_tag = SiteCfg.EdgeConversion[node.ftag]
-        elem = ET.Element(elem_type,
+        elem = ET.Element(SiteCfg.Tags.Unit,
                           {SiteCfg.Attr.ElemTag: elem_tag,
                            SiteCfg.Attr.SiteID: state.get_id(),
                            SiteCfg.Attr.Unanalyzable: unanalyzable,
@@ -412,6 +410,20 @@ def to_site(passage):
                            SiteCfg.Attr.Uncertain: uncertain,
                            SiteCfg.Attr.Suggestion: suggestion})
         state.elems[edge.parent.ID].insert(0, elem)
+
+    def _implicit(node):
+        uncertain = (SiteCfg.TRUE if node.incoming[0].attrib.get('uncertain')
+                     else SiteCfg.FALSE)
+        suggestion = (SiteCfg.TRUE if node.attrib.get('suggest')
+                      else SiteCfg.FALSE)
+        elem = ET.Element(SiteCfg.Tags.Implicit,
+                          {SiteCfg.Attr.ElemTag:
+                           SiteCfg.EdgeConversion[node.ftag],
+                           SiteCfg.Attr.SiteID: state.get_id(),
+                           SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE,
+                           SiteCfg.Attr.Uncertain: uncertain,
+                           SiteCfg.Attr.Suggestion: suggestion})
+        state.elems[node.fparent.ID].insert(0, elem)
 
     def _linkage(link):
         args = [str(state.mapping[x.ID]) for x in link.arguments]
@@ -487,11 +499,14 @@ def to_site(passage):
         else:
             break
 
-    # Handling remotes and linkages
+    # Handling remotes, implicits and linkages
     for remote in [edge for node in passage.layer(layer1.LAYER_ID).all
                    for edge in node
                    if edge.attrib.get('remote')]:
         _remote(remote)
+    for implicit in [node for node in passage.layer(layer1.LAYER_ID).all
+                     if node.attrib.get('implicit')]:
+        _implicit(implicit)
     for linkage in filter(lambda x: x.tag == layer1.NodeTags.Linkage,
                           passage.layer(layer1.LAYER_ID).heads):
         _linkage(linkage)

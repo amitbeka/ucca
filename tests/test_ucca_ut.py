@@ -757,12 +757,8 @@ class ConversionTests(unittest.TestCase):
     def test_to_site(self):
         passage = convert.from_standard(self._load_xml('./standard3.xml'))
         root = convert.to_site(passage)
-        ref = ETree.tostring(self._load_xml('./site4.xml'))
-        # A wierd bug in tostring causes difference in order, which causes
-        # this to fail. Seems there are two possible orders, so we need one of
-        # them to be equal to our reference
-        self.assertTrue(ETree.tostring(root) == ref
-                        or ETree.tostring(root) == ref)
+        copy = convert.from_site(root)
+        self.assertTrue(passage.equals(copy))
 
 
 class UtilTests(unittest.TestCase):
