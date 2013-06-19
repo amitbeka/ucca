@@ -342,7 +342,7 @@ def to_site(passage):
 
     class _State:
         def __init__(self):
-            self.ID = 2
+            self.ID = 1
             self.mapping = {}
             self.elems = {}
 
@@ -442,11 +442,7 @@ def to_site(passage):
             parent = None
         return parent
 
-    elems_root = ET.Element(
-        SiteCfg.Tags.Unit,
-        {SiteCfg.Attr.ElemTag: SiteCfg.TBD, SiteCfg.Attr.SiteID: '1',
-         SiteCfg.Attr.Uncertain: SiteCfg.FALSE,
-         SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE})
+    para_elems = []
 
     # The IDs are used to check whether a parent should be real or a chunk
     # of a larger unit -- in the latter case we need the new ID
@@ -470,9 +466,15 @@ def to_site(passage):
                 elem.set(SiteCfg.Attr.GroupID, state.mapping[parent.ID])
             unit = elem
             parent = _get_parent(parent)
-        # The uppermost unit (w.o parents) should be the subelement of the root
+        # The uppermost unit (w.o parents) should be the subelement of a
+        # paragraph element, if it exists
         if parent is None:
-            elems_root.append(unit)
+            if term.para_pos == 1:  # need to add paragraph element
+                para_elems.append(ET.Element(
+                    SiteCfg.Tags.Unit,
+                    {SiteCfg.Attr.ElemTag: SiteCfg.TBD,
+                     SiteCfg.Attr.SiteID: state.get_id()}))
+            para_elems[-1].append(unit)
 
     # Because we identify a partial discontiguous unit (marked as TBD) only
     # after we create the elements, we may end with something like:
@@ -480,22 +482,25 @@ def to_site(passage):
     # which we would like to merge under one element.
     # Becasue we keep changing the tree, we must break and re-iterate each time
     while True:
-        for parent in elems_root.iter():
-            if any(x.get(SiteCfg.Attr.GroupID) for x in parent):
-                # Must use list() as we change parent members
+        for elems_root in para_elems:
+            for parent in elems_root.iter():
                 changed = False
-                for i, elem in enumerate(list(parent)):
-                    if (i > 0 and elem.get(SiteCfg.Attr.GroupID) and
-                            elem.get(SiteCfg.Attr.GroupID) ==
-                            parent[i - 1].get(SiteCfg.Attr.GroupID)):  # merge
-                        parent.remove(elem)
-                        for subelem in list(elem):
-                            elem.remove(subelem)
-                            parent[i - 1].append(subelem)
-                        changed = True
+                if any(x.get(SiteCfg.Attr.GroupID) for x in parent):
+                    # Must use list() as we change parent members
+                    for i, elem in enumerate(list(parent)):
+                        if (i > 0 and elem.get(SiteCfg.Attr.GroupID) and
+                                elem.get(SiteCfg.Attr.GroupID) ==
+                                parent[i - 1].get(SiteCfg.Attr.GroupID)):
+                            parent.remove(elem)
+                            for subelem in list(elem):  # merging
+                                elem.remove(subelem)
+                                parent[i - 1].append(subelem)
+                            changed = True
+                            break
+                    if changed:
                         break
-                if changed:
-                    break
+            if changed:
+                break
         else:
             break
 
@@ -521,7 +526,7 @@ def to_site(passage):
                             SiteCfg.Attr.SiteID: '0',
                             SiteCfg.Attr.Unanalyzable: SiteCfg.FALSE,
                             SiteCfg.Attr.Uncertain: SiteCfg.FALSE})
-    units0.append(elems_root)
+    units0.extend(para_elems)
     ET.SubElement(root, 'LRUunits')
     ET.SubElement(root, 'hiddenUnits')
 
