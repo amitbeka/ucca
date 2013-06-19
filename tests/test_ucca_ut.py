@@ -757,8 +757,12 @@ class ConversionTests(unittest.TestCase):
     def test_to_site(self):
         passage = convert.from_standard(self._load_xml('./standard3.xml'))
         root = convert.to_site(passage)
-        ref = self._load_xml('./site4.xml')
-        self.assertEqual(ETree.tostring(root), ETree.tostring(ref))
+        ref = ETree.tostring(self._load_xml('./site4.xml'))
+        # A wierd bug in tostring causes difference in order, which causes
+        # this to fail. Seems there are two possible orders, so we need one of
+        # them to be equal to our reference
+        self.assertTrue(ETree.tostring(root) == ref
+                        or ETree.tostring(root) == ref)
 
 
 class UtilTests(unittest.TestCase):
