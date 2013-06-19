@@ -204,6 +204,7 @@ class FoundationalNode(core.Node):
             head, which returns None.
         ftag: the tag of the Edge connecting the fparent (as described above)
             with this FNode
+        discontiguous: whether this FNode has continuous Terminals or not
 
     """
 
@@ -321,6 +322,26 @@ class FoundationalNode(core.Node):
             return self.get_terminals()[-1].position
         except IndexError:  # implicit unit or having no Terminals
             return -1
+
+    @property
+    def discontiguous(self):
+        terms = self.get_terminals()
+        return any(terms[i].position + 1 != terms[i + 1].position
+                   for i in range(len(terms) - 1))
+
+    def get_sequences(self):
+        if self.attrib.get('implicit'):
+            return []
+        pos = sorted([x.position for x in self.get_terminals()])
+
+        # all terminals which end a sequence, including the last one
+        seq_closers = [pos[i] for i in range(len(pos) - 1)
+                       if pos[i] + 1 < pos[i + 1]] + [pos[-1]]
+
+        # all terminals which start a sequence, including the first one
+        seq_openers = [pos[0]] + [pos[i] for i in range(1, len(pos))
+                                  if pos[i - 1] < pos[i] - 1]
+        return [(op, cl) for op, cl in zip(seq_openers, seq_closers)]
 
     def to_text(self):
         """Returns the text in the span of self, separated by spaces."""

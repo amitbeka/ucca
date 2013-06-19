@@ -489,6 +489,113 @@ class Layer1Tests(unittest.TestCase):
         self.assertFalse(a1.parents)
         self.assertFalse(punct1.parents)
 
+    def _create_discontiguous(self):
+        """Creates a highly-dicontiguous Passage object."""
+        p = core.Passage('1')
+        l0 = layer0.Layer0(p)
+        l1 = layer1.Layer1(p)
+        # 20 terminals (1-20), #10 and #20 are punctuation
+        terms = [l0.add_terminal(text=str(i), punct=(i % 10 == 0))
+                 for i in range(1, 21)]
+
+        # First parallel scene, stretching on terminals 1-10
+        # The dashed edge tags (e.g. -C, C-) mean discontiguous units
+        # [PS [D [E 0] [C- 1] [E 2] [-C 3]]
+        #     [A- 4] [P- 5 6] [-A 7] [F 8] [-P [U 9]]]
+        # In addition, D takes P as a remote G
+        ps1 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        d1 = l1.add_fnode(ps1, layer1.EdgeTags.Adverbial)
+        e1 = l1.add_fnode(d1, layer1.EdgeTags.Elaborator)
+        c1 = l1.add_fnode(d1, layer1.EdgeTags.Center)
+        e2 = l1.add_fnode(d1, layer1.EdgeTags.Elaborator)
+        a1 = l1.add_fnode(ps1, layer1.EdgeTags.Participant)
+        p1 = l1.add_fnode(ps1, layer1.EdgeTags.Process)
+        f1 = l1.add_fnode(ps1, layer1.EdgeTags.Function)
+        l1.add_remote(d1, layer1.EdgeTags.Ground, p1)
+        e1.add(layer1.EdgeTags.Terminal, terms[0])
+        c1.add(layer1.EdgeTags.Terminal, terms[1])
+        e2.add(layer1.EdgeTags.Terminal, terms[2])
+        c1.add(layer1.EdgeTags.Terminal, terms[3])
+        a1.add(layer1.EdgeTags.Terminal, terms[4])
+        p1.add(layer1.EdgeTags.Terminal, terms[5])
+        p1.add(layer1.EdgeTags.Terminal, terms[6])
+        a1.add(layer1.EdgeTags.Terminal, terms[7])
+        f1.add(layer1.EdgeTags.Terminal, terms[8])
+        l1.add_punct(p1, terms[9])
+
+        # Second paralel scene, stretching on terminals 11-14 + 18-20
+        # [PS- [D IMPLICIT] [G IMPLICIT] [P 10 11 12 13]]
+        # [-PS [A 17 18 [U 19]]]
+        ps2 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        d2 = l1.add_fnode(ps2, layer1.EdgeTags.Adverbial, implicit=True)
+        g2 = l1.add_fnode(ps2, layer1.EdgeTags.Ground, implicit=True)
+        p2 = l1.add_fnode(ps2, layer1.EdgeTags.Process)
+        a2 = l1.add_fnode(ps2, layer1.EdgeTags.Participant)
+        p2.add(layer1.EdgeTags.Terminal, terms[10])
+        p2.add(layer1.EdgeTags.Terminal, terms[11])
+        p2.add(layer1.EdgeTags.Terminal, terms[12])
+        p2.add(layer1.EdgeTags.Terminal, terms[13])
+        a2.add(layer1.EdgeTags.Terminal, terms[17])
+        a2.add(layer1.EdgeTags.Terminal, terms[18])
+        l1.add_punct(a2, terms[19])
+
+        # Third parallel scene, stretching on terminals 15-17
+        # [PS [P IMPLICIT] 14 [A 15 16]]
+        ps3 = l1.add_fnode(None, layer1.EdgeTags.ParallelScene)
+        ps3.add(layer1.EdgeTags.Terminal, terms[14])
+        p3 = l1.add_fnode(ps3, layer1.EdgeTags.Process, implicit=True)
+        a3 = l1.add_fnode(ps3, layer1.EdgeTags.Participant)
+        a3.add(layer1.EdgeTags.Terminal, terms[15])
+        a3.add(layer1.EdgeTags.Terminal, terms[16])
+
+        return p
+
+    def test_discontiguous(self):
+        """Tests FNode.discontiguous and FNode.get_sequences"""
+        p = self._create_discontiguous()
+        l1 = p.layer('1')
+        head = l1.heads[0]
+        ps1, ps2, ps3 = head.children
+        d1, a1, p1, f1 = ps1.children
+        e1, c1, e2, g1 = d1.children
+        d2, g2, p2, a2 = ps2.children
+        t14, p3, a3 = ps3.children
+
+        # Checking discontiguous property
+        self.assertFalse(ps1.discontiguous)
+        self.assertFalse(d1.discontiguous)
+        self.assertFalse(e1.discontiguous)
+        self.assertFalse(e2.discontiguous)
+        self.assertTrue(c1.discontiguous)
+        self.assertTrue(g1.discontiguous)
+        self.assertTrue(a1.discontiguous)
+        self.assertTrue(p1.discontiguous)
+        self.assertFalse(f1.discontiguous)
+        self.assertTrue(ps2.discontiguous)
+        self.assertFalse(p2.discontiguous)
+        self.assertFalse(a2.discontiguous)
+        self.assertFalse(ps3.discontiguous)
+        self.assertFalse(a3.discontiguous)
+
+        # Checking get_sequences -- should return only non-remote, non-implicit
+        # stretches of terminals
+        self.assertSequenceEqual(ps1.get_sequences(), [(1, 10)])
+        self.assertSequenceEqual(d1.get_sequences(), [(1, 4)])
+        self.assertSequenceEqual(e1.get_sequences(), [(1, 1)])
+        self.assertSequenceEqual(e2.get_sequences(), [(3, 3)])
+        self.assertSequenceEqual(c1.get_sequences(), [(2, 2), (4, 4)])
+        self.assertSequenceEqual(a1.get_sequences(), [(5, 5), (8, 8)])
+        self.assertSequenceEqual(p1.get_sequences(), [(6, 7), (10, 10)])
+        self.assertSequenceEqual(f1.get_sequences(), [(9, 9)])
+        self.assertSequenceEqual(ps2.get_sequences(), [(11, 14), (18, 20)])
+        self.assertSequenceEqual(p2.get_sequences(), [(11, 14)])
+        self.assertSequenceEqual(a2.get_sequences(), [(18, 20)])
+        self.assertSequenceEqual(d2.get_sequences(), [])
+        self.assertSequenceEqual(g2.get_sequences(), [])
+        self.assertSequenceEqual(ps3.get_sequences(), [(15, 17)])
+        self.assertSequenceEqual(a3.get_sequences(), [(16, 17)])
+        self.assertSequenceEqual(p3.get_sequences(), [])
+
 
 class ConversionTests(unittest.TestCase):
     """Tests convert module correctness and API."""
