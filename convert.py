@@ -430,10 +430,6 @@ def to_site(passage):
             parent = None
         return parent
 
-    # The method for checking discontinuity is already found in FNode.__str__
-    # ... is not a possible word as punctuation is split in tokenization
-    is_split = lambda x: x.layer == layer1.LAYER_ID and '...' in str(x)
-
     elems_root = ET.Element(
         SiteCfg.Tags.Unit,
         {SiteCfg.Attr.ElemTag: SiteCfg.TBD, SiteCfg.Attr.SiteID: '1',
@@ -442,7 +438,9 @@ def to_site(passage):
 
     # The IDs are used to check whether a parent should be real or a chunk
     # of a larger unit -- in the latter case we need the new ID
-    split_ids = [ID for ID, node in passage.nodes.items() if is_split(node)]
+    split_ids = [ID for ID, node in passage.nodes.items()
+                 if node.tag == layer1.NodeTags.Foundational and
+                 node.discontiguous]
     unit_groups = [_cunit(passage.by_id(ID), None) for ID in split_ids]
     state.elems.update((ID, elem) for ID, elem in zip(split_ids, unit_groups))
 
@@ -451,7 +449,7 @@ def to_site(passage):
         unit = _word(term)
         parent = _get_parent(term)
         while parent is not None:
-            if parent.ID in state.mapping:
+            if parent.ID in state.mapping and parent.ID not in split_ids:
                 state.elems[parent.ID].append(unit)
                 break
             elem = _cunit(parent, unit)
@@ -464,7 +462,32 @@ def to_site(passage):
         if parent is None:
             elems_root.append(unit)
 
-    # Handling remotes, references and linkages
+    # Because we identify a partial discontiguous unit (marked as TBD) only
+    # after we create the elements, we may end with something like:
+    # <unit ... unitGroupID='3'> ... </unit> <unit ... unitGroupID='3'> ...
+    # which we would like to merge under one element.
+    # Becasue we keep changing the tree, we must break and re-iterate each time
+    while True:
+        for parent in elems_root.iter():
+            if any(x.get(SiteCfg.Attr.GroupID) for x in parent):
+                # Must use list() as we change parent members
+                changed = False
+                for i, elem in enumerate(list(parent)):
+                    if (i > 0 and elem.get(SiteCfg.Attr.GroupID) and
+                            elem.get(SiteCfg.Attr.GroupID) ==
+                            parent[i - 1].get(SiteCfg.Attr.GroupID)):  # merge
+                        parent.remove(elem)
+                        for subelem in list(elem):
+                            elem.remove(subelem)
+                            parent[i - 1].append(subelem)
+                        changed = True
+                        break
+                if changed:
+                    break
+        else:
+            break
+
+    # Handling remotes and linkages
     for remote in [edge for node in passage.layer(layer1.LAYER_ID).all
                    for edge in node
                    if edge.attrib.get('remote')]:
