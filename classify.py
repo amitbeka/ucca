@@ -31,14 +31,18 @@ def create_feature_matrix(scores_fd, targets, features):
     return mat
 
 
-def evaluate(fmat, labels, method='svm', k=10):
+def evaluate(fmat, labels, targets, method='svm', k=10):
     """Evaluates linear kernel SVM/logistic regression with k-fold cross
     validation."""
     cls = mlpy.LibSvm() if method == 'svm' else mlpy.LibLinear()
+    nptargets = np.array(targets)
     out = []
+    detailed = [[[], []], [[], []]]
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
         cls.learn(fmat[tr], labels[tr])
         pred = cls.pred(fmat[ts])
+        for target, x, y in zip(nptargets[ts], labels[ts], pred):
+            detailed[x][int(y)].append(target)
         tp = [x == int(y) == 1
               for x, y in zip(labels[ts], pred)].count(True)
         tn = [x == int(y) == 0
@@ -60,7 +64,7 @@ def evaluate(fmat, labels, method='svm', k=10):
         except:
             accuracy = None
         out.append((precision, recall, accuracy))
-    return out
+    return out, detailed
 
 
 def baseline(targets, collins_path, wikt_path):

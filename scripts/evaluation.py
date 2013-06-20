@@ -67,14 +67,20 @@ def main():
     targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
                                         args.ratio)
 
+    stats, detailed = classify.evaluate(fmat, labels, targets)
+    results = [np.mean([x for x in stat if x is not None]) for stat in stats]
     print("Evaluation result:")
-    print("Precision: {} Recall: {} Accuracy: {}".format(
-        *[np.mean([x for x in stat if x is not None])
-          for stat in zip(*classify.evaluate(fmat, labels))]))
+    print("Precision: {} Recall: {} Accuracy: {}".format(*results))
     print("Baseline:")
     print("Precision: {} Recall: {} Accuracy: {}".format(
         *classify.evaluate_bl(labels, classify.baseline(targets, args.collins,
                                                         args.wiktionary))))
+    print("Detailed Results:")
+    for true_label in [0, 1]:
+        for pred_label in [0, 1]:
+            print("\n\nTrue: {} Pred: {} Targets:\n".format(true_label,
+                                                            pred_label),
+                  *detailed[true_label][pred_label], sep='\t')
 
 
 if __name__ == '__main__':
