@@ -59,6 +59,9 @@ def main():
     parser.add_argument('fmat', type=argparse.FileType('rb'))
     parser.add_argument('collins', help='path to collins dict in pickle')
     parser.add_argument('wiktionary', help='path to wiktionary defs')
+    parser.add_argument('method', choices=('c_svc', 'nu_svc_linear',
+                                           'nu_svc_sigmoid', 'lr'),
+                        help='classification method')
     parser.add_argument('--ratio', type=float, default=2)
     args = parser.parse_args()
 
@@ -67,7 +70,7 @@ def main():
     targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
                                         args.ratio)
 
-    stats, detailed = classify.evaluate(fmat, labels, targets)
+    stats, detailed = classify.evaluate(fmat, labels, targets, args.method)
     results = [np.mean([x for x in stat if x is not None]) for stat in stats]
     print("Evaluation result:")
     print("Precision: {} Recall: {} Accuracy: {}".format(*results))

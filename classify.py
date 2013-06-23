@@ -31,10 +31,12 @@ def create_feature_matrix(scores_fd, targets, features):
     return mat
 
 
-def evaluate(fmat, labels, targets, method='svm', k=10):
-    """Evaluates linear kernel SVM/logistic regression with k-fold cross
-    validation."""
-    cls = mlpy.LibSvm() if method == 'svm' else mlpy.LibLinear()
+def evaluate(fmat, labels, targets, method='c_svc', k=10):
+    classifiers = {'c_svc': mlpy.LibSvm(),
+                   'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
+                   'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid'),
+                   'lr': mlpy.LibLinear()}
+    cls = classifiers[method]
     nptargets = np.array(targets)
     out = []
     detailed = [[[], []], [[], []]]
