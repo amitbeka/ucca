@@ -71,7 +71,11 @@ def main():
                                         args.ratio)
 
     stats, detailed = classify.evaluate(fmat, labels, targets, args.method)
-    results = [np.mean([x for x in stat if x is not None]) for stat in stats]
+    # We use zip(*stats) because stats are [(prec1, rec1, acc1), ((prec2 ...))]
+    # and this turns them into [(prec1, prec2 ..), (rec1, rec2 ..)] which is
+    # what we want to use mean() on
+    results = [np.mean([x for x in stat if x is not None])
+               for stat in zip(*stats)]
     print("Evaluation result:")
     print("Precision: {} Recall: {} Accuracy: {}".format(*results))
     print("Baseline:")
