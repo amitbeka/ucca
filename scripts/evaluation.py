@@ -60,7 +60,7 @@ def main():
     parser.add_argument('collins', help='path to collins dict in pickle')
     parser.add_argument('wiktionary', help='path to wiktionary defs')
     parser.add_argument('method', choices=('c_svc', 'nu_svc_linear',
-                                           'nu_svc_sigmoid', 'lr'),
+                                           'nu_svc_sigmoid', 'lr', 'gboost'),
                         help='classification method')
     parser.add_argument('--ratio', type=float, default=2)
     args = parser.parse_args()

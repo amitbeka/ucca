@@ -2,6 +2,9 @@ import mlpy
 import numpy as np
 from ucca import lex
 
+from sklearn.cross_validation import cross_val_score
+from sklearn.ensemble import GradientBoostingClassifier
+
 
 def create_targets_array(targets_fd):
     """target+label line ==> labels ndarray, string tuple"""
@@ -32,17 +35,24 @@ def create_feature_matrix(scores_fd, targets, features):
 
 
 def evaluate(fmat, labels, targets, method='c_svc', k=10):
-    classifiers = {'c_svc': mlpy.LibSvm(),
-                   'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
-                   'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid'),
-                   'lr': mlpy.LibLinear()}
+    classifiers = {
+        'c_svc': mlpy.LibSvm(),
+        'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
+        'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid'),
+        'lr': mlpy.LibLinear(),
+        'gboost': GradientBoostingClassifier()
+    }
     cls = classifiers[method]
     nptargets = np.array(targets)
     out = []
     detailed = [[[], []], [[], []]]
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
-        cls.learn(fmat[tr], labels[tr])
-        pred = cls.pred(fmat[ts])
+        try:
+            cls.learn(fmat[tr], labels[tr])
+            pred = cls.pred(fmat[ts])
+        except AttributeError:
+            cls.fit(fmat[tr], labels[tr])
+            pred = cls.predict(fmat[ts])
         for target, x, y in zip(nptargets[ts], labels[ts], pred):
             detailed[x][int(y)].append(target)
         tp = [x == int(y) == 1
