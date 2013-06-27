@@ -5,8 +5,6 @@ import numpy as np
 
 from ucca import classify
 
-# run through evaluate and baseline
-
 
 def get_data_objects(labels_fd, fmat_fd):
     """Gets file obj of 2 pickle files and returns (targets, labels, fmat)."""
@@ -53,6 +51,28 @@ def filter_data(targets, labels, fmat, ratio):
     return new_targets, new_labels, new_fmat
 
 
+def run_kfold_evaluation(orig_targets, orig_labels, orig_fmat, method,
+                         ratio, coll, wikt, detailed=False, baseline=False):
+
+    targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
+                                        ratio)
+
+    stats, details = classify.evaluate(fmat, labels, targets, method)
+    # We use zip(*stats) because stats are [(prec1, rec1, acc1), ((prec2 ...))]
+    # and this turns them into [(prec1, prec2 ..), (rec1, rec2 ..)] which is
+    # what we want to use mean() on
+    results = [np.mean([x for x in stat if x is not None])
+               for stat in zip(*stats)]
+    bl_results = classify.evaluate_bl(
+        labels, classify.baseline(targets, coll, wikt))
+    out = [results]
+    if baseline:
+        out.append(bl_results)
+    if detailed:
+        out.append(details)
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('labels', type=argparse.FileType('rb'))
@@ -67,27 +87,19 @@ def main():
 
     orig_targets, orig_labels, orig_fmat = get_data_objects(args.labels,
                                                             args.fmat)
-    targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
-                                        args.ratio)
-
-    stats, detailed = classify.evaluate(fmat, labels, targets, args.method)
-    # We use zip(*stats) because stats are [(prec1, rec1, acc1), ((prec2 ...))]
-    # and this turns them into [(prec1, prec2 ..), (rec1, rec2 ..)] which is
-    # what we want to use mean() on
-    results = [np.mean([x for x in stat if x is not None])
-               for stat in zip(*stats)]
+    results, bl_results, details = run_kfold_evaluation(
+        orig_targets, orig_labels, orig_fmat, args.method, args.ratio,
+        args.collins, args.wiktionary, True, True)
     print("Evaluation result:")
     print("Precision: {} Recall: {} Accuracy: {}".format(*results))
     print("Baseline:")
-    print("Precision: {} Recall: {} Accuracy: {}".format(
-        *classify.evaluate_bl(labels, classify.baseline(targets, args.collins,
-                                                        args.wiktionary))))
+    print("Precision: {} Recall: {} Accuracy: {}".format(*bl_results))
     print("Detailed Results:")
     for true_label in [0, 1]:
         for pred_label in [0, 1]:
             print("\n\nTrue: {} Pred: {} Targets:\n".format(true_label,
                                                             pred_label),
-                  *detailed[true_label][pred_label], sep='\t')
+                  *details[true_label][pred_label], sep='\t')
 
 
 if __name__ == '__main__':
