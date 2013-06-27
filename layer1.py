@@ -10,7 +10,7 @@ the type of relation between the Nodes.
 
 import operator
 
-from ucca import core
+from ucca import core, layer0
 
 
 # Layer ID
@@ -329,28 +329,47 @@ class FoundationalNode(core.Node):
     def is_scene(self):
         return (self.state is not None or self.process is not None)
 
+    def str_sequences(self):
+        """Returns a list of stringified sequences and positions of this FNode.
+
+        For continuous FNodes, it will return a 1-item list. The format
+        of the chunks is as follows:
+            Terminals: just the text of it
+            Punctuation: just the text of the terminal(s) under it
+            FNodes: According to their str()
+
+        """
+        if not self.discontiguous:
+            return [(str(self), self.start_position, self.end_position)]
+        for start, end in self.get_sequences():
+            pass
+
     def __str__(self):
-        if all(e.tag in (EdgeTags.Terminal, EdgeTags.Punctuation)
-               for e in self):
-            return ' '.join(str(t) for t in self.children)
-        sorted_edges = sorted(list(self),
-                              key=lambda x: x.child.start_position)
+        start = lambda x: (x.position if x.layer.ID == layer0.LAYER_ID else
+                           x.start_position)
+        end = lambda x: (x.position if x.layer.ID == layer0.LAYER_ID else
+                         x.end_position)
+        sorted_edges = sorted(list(self), key=lambda edge: start(edge.child))
         output = ''
         for i, edge in enumerate(sorted_edges):
             node = edge.child
-            edge_tag = edge.tag
-            if edge.attrib.get('remote'):
-                edge_tag = edge_tag + '*'
-            if edge.attrib.get('uncertain'):
-                edge_tag = edge_tag + '?'
-            if node.start_position == -1:
-                output += " [{} IMPLICIT]".format(edge_tag)
+            if edge.tag == EdgeTags.Terminal:
+                space = ' ' if not end(node) == self.end_position else ''
+                output += '{}{}'.format(str(node), space)
             else:
-                output += "[{} {}] ".format(edge_tag, str(node))
-                if (not edge.attrib.get('remote') and i + 1 < len(sorted_edges)
-                    and node.end_position + 1 <
-                        sorted_edges[i + 1].child.start_position):
-                    output += " ... "  # adding '...' if discontiguous
+                edge_tag = edge.tag
+                if edge.attrib.get('remote'):
+                    edge_tag = edge_tag + '*'
+                if edge.attrib.get('uncertain'):
+                    edge_tag = edge_tag + '?'
+                if start(node) == -1:
+                    output += "[{} IMPLICIT] ".format(edge_tag)
+                else:
+                    output += "[{} {}] ".format(edge_tag, str(node))
+            if (start(node) != -1 and not edge.attrib.get('remote')
+                    and i + 1 < len(sorted_edges)
+                    and end(node) + 1 < start(sorted_edges[i + 1].child)):
+                output += "... "  # adding '...' if discontiguous
         return output
 
 
