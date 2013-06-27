@@ -52,7 +52,7 @@ def filter_data(targets, labels, fmat, ratio):
 
 
 def run_kfold_evaluation(orig_targets, orig_labels, orig_fmat, method,
-                         ratio, coll, wikt, detailed=False, baseline=False):
+                         ratio, detailed=False):
 
     targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
                                         ratio)
@@ -63,43 +63,53 @@ def run_kfold_evaluation(orig_targets, orig_labels, orig_fmat, method,
     # what we want to use mean() on
     results = [np.mean([x for x in stat if x is not None])
                for stat in zip(*stats)]
-    bl_results = classify.evaluate_bl(
-        labels, classify.baseline(targets, coll, wikt))
     out = [results]
-    if baseline:
-        out.append(bl_results)
     if detailed:
         out.append(details)
     return out
+
+
+def run_bl_evaluation(orig_targets, orig_labels, orig_fmat, ratio, coll, wikt):
+    targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
+                                        ratio)
+    return classify.evaluate_bl(labels, classify.baseline(targets, coll, wikt))
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('labels', type=argparse.FileType('rb'))
     parser.add_argument('fmat', type=argparse.FileType('rb'))
-    parser.add_argument('collins', help='path to collins dict in pickle')
-    parser.add_argument('wiktionary', help='path to wiktionary defs')
-    parser.add_argument('method', choices=('c_svc', 'nu_svc_linear',
+    parser.add_argument('method', choices=('bl', 'c_svc', 'nu_svc_linear',
                                            'nu_svc_sigmoid', 'lr', 'gboost'),
                         help='classification method')
+    parser.add_argument('--detailed', action='store_true')
+    parser.add_argument('--collins', help='path to collins dict in pickle')
+    parser.add_argument('--wiktionary', help='path to wiktionary defs')
     parser.add_argument('--ratio', type=float, default=2)
     args = parser.parse_args()
 
     orig_targets, orig_labels, orig_fmat = get_data_objects(args.labels,
                                                             args.fmat)
-    results, bl_results, details = run_kfold_evaluation(
-        orig_targets, orig_labels, orig_fmat, args.method, args.ratio,
-        args.collins, args.wiktionary, True, True)
-    print("Evaluation result:")
+    if args.method == 'bl':
+        results = run_bl_evaluation(orig_targets, orig_labels, orig_fmat,
+                                    args.ratio, args.collins, args.wiktionary)
+        args.detailed = False  # no detailed results for baseline
+    else:
+        out = run_kfold_evaluation(orig_targets, orig_labels, orig_fmat,
+                                   args.method, args.ratio, args.detailed)
+        if args.detailed:
+            results, details = out
+        else:
+            results = out[0]
+
     print("Precision: {} Recall: {} Accuracy: {}".format(*results))
-    print("Baseline:")
-    print("Precision: {} Recall: {} Accuracy: {}".format(*bl_results))
-    print("Detailed Results:")
-    for true_label in [0, 1]:
-        for pred_label in [0, 1]:
-            print("\n\nTrue: {} Pred: {} Targets:\n".format(true_label,
-                                                            pred_label),
-                  *details[true_label][pred_label], sep='\t')
+    if args.detailed:
+        print("Detailed Results:")
+        for true_label in [0, 1]:
+            for pred_label in [0, 1]:
+                print("\n\nTrue: {} Pred: {} Targets:\n".format(true_label,
+                                                                pred_label),
+                      *details[true_label][pred_label], sep='\t')
 
 
 if __name__ == '__main__':
