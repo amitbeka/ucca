@@ -6,10 +6,14 @@ a valid target (less than this threshold is ignored).
 THRESH2 - float, what is the ratio between scene-evoking instances to not
 which will label this target as scene evoker
 
+Output: both prints the targets with num_instances and ratio to stdout,
+and saves the targets and labels in a pickle file.
+
 """
 from ucca import scenes
 import sys
 import pickle
+import numpy as np
 
 dbfile = sys.argv[1]
 appear_thresh = int(sys.argv[2])
@@ -29,5 +33,6 @@ for noun, terminals in nouns.items():
         labels.append(1)
     else:
         labels.append(0)
-print(targets)
-print(labels)
+np_labels = np.array(labels, dtype=np.int32)
+with open(dbfile + '.tl.pickle', 'wb') as f:
+    pickle.dump((targets, labels), f)
