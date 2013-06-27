@@ -86,22 +86,31 @@ def main():
     parser.add_argument('--collins', help='path to collins dict in pickle')
     parser.add_argument('--wiktionary', help='path to wiktionary defs')
     parser.add_argument('--ratio', type=float, default=2)
+    parser.add_argument('--runs', type=int, default=1,
+                        help='times to run evaluation and average')
     args = parser.parse_args()
 
     orig_targets, orig_labels, orig_fmat = get_data_objects(args.labels,
                                                             args.fmat)
-    if args.method == 'bl':
-        results = run_bl_evaluation(orig_targets, orig_labels, orig_fmat,
-                                    args.ratio, args.collins, args.wiktionary)
-        args.detailed = False  # no detailed results for baseline
-    else:
-        out = run_kfold_evaluation(orig_targets, orig_labels, orig_fmat,
-                                   args.method, args.ratio, args.detailed)
-        if args.detailed:
-            results, details = out
+    if args.runs > 1:
+        args.detailed = False  # don't use it
+        all_results = []
+    for _ in range(args.runs):
+        if args.method == 'bl':
+            results = run_bl_evaluation(
+                orig_targets, orig_labels, orig_fmat, args.ratio, args.collins,
+                args.wiktionary)
+            args.detailed = False  # no detailed results for baseline
         else:
-            results = out[0]
+            out = run_kfold_evaluation(orig_targets, orig_labels, orig_fmat,
+                                    args.method, args.ratio, args.detailed)
+            if args.detailed:
+                results, details = out
+            else:
+                results = out[0]
+        all_results.append(results)
 
+    results = [np.mean(stat) for stat in zip(*all_results)]
     print("Precision: {} Recall: {} Accuracy: {}".format(*results))
     if args.detailed:
         print("Detailed Results:")
