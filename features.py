@@ -10,7 +10,9 @@ UCCA passages is also covered.
 import argparse
 import sys
 import nltk
-from ucca import lex
+import pickle
+from ucca import lex, collins
+from ucca.postags import POSTags
 
 
 DEFAULT_CHUNK_SIZE = 2 ** 20
@@ -195,6 +197,27 @@ def has_prefix(targets, prefix):
     return tuple(int(x[0].startswith(prefix)) for x in targets)
 
 
+def extract_dict_features(targets, collins_path):
+    targets = [' '.join(target) for target in targets]  # tuples to strings
+    with open(collins_path, 'rb') as f:
+        raw_dict = pickle.load(f)
+    coll = collins.CollinsDictionary(raw_dict)
+    feats = []
+    descriptions = []
+    for target in targets:
+        entries = coll.by_key(target)
+        if len(entries) != 1:  # we don't handle context-dependent entries
+            descriptions.append([])
+            continue
+        descriptions.append([s.desc for s in entries[0].senses
+                             if s.pos == POSTags.Noun])
+    for mark in ('activity', 'process', 'act'):
+        feats.append(' '.join(
+            str(int(any(mark in d.split()[1:6] for d in tdesc)))
+            for tdesc in descriptions))
+    return feats
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -305,6 +328,7 @@ def main():
             else:
                 dual_vn.append('0')
         res.append(" ".join(dual_vn))
+        res += extract_dict_features(args.targets, args.collins)
         print("\n".join(res))
 
 
