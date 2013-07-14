@@ -92,9 +92,9 @@ def main():
 
     orig_targets, orig_labels, orig_fmat = get_data_objects(args.labels,
                                                             args.fmat)
+    all_results = []
     if args.runs > 1:
         args.detailed = False  # don't use it
-        all_results = []
     for _ in range(args.runs):
         if args.method == 'bl':
             results = run_bl_evaluation(
@@ -103,7 +103,7 @@ def main():
             args.detailed = False  # no detailed results for baseline
         else:
             out = run_kfold_evaluation(orig_targets, orig_labels, orig_fmat,
-                                    args.method, args.ratio, args.detailed)
+                                       args.method, args.ratio, args.detailed)
             if args.detailed:
                 results, details = out
             else:
