@@ -42,6 +42,23 @@ def extract_possible_scenes(passage):
     return ret
 
 
+def extract_non_scenes_AGCE(passage):
+    """Extracts all non-scene participant/center/elaborator/ground objects.
+
+    Args:
+        passage: core.Passage object to extract FNodes from
+
+    Returns:
+        a list of layer1.FundationalNodes objects, or an empty list
+
+    """
+    l1 = passage.layer(layer1.LAYER_ID)
+    requested_tags = (layer1.EdgeTags.Participant, layer1.EdgeTags.Center,
+                      layer1.EdgeTags.Elaborator, layer1.EdgeTags.Ground)
+    return [fnode for fnode in l1.all if x.tag == layer1.NodeTags.Foundational
+            and x.ftag in requested_tags]
+
+
 def extract_head(fnode):
     """Extracts the head of the FoundationalNode given.
 
