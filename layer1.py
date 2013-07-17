@@ -393,6 +393,15 @@ class FoundationalNode(core.Node):
                 output += "... "  # adding '...' if discontiguous
         return output
 
+    def get_top_scene(self):
+        """Returns the top-level scene this FNode is within, or None"""
+        if self in self.layer.top_scenes:
+            return self
+        elif self.fparent is None:
+            return None
+        else:
+            return self.fparent.get_top_scene()
+
 
 class Layer1(core.Layer):
     """
