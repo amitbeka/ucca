@@ -55,8 +55,9 @@ def extract_non_scenes_AGCE(passage):
     l1 = passage.layer(layer1.LAYER_ID)
     requested_tags = (layer1.EdgeTags.Participant, layer1.EdgeTags.Center,
                       layer1.EdgeTags.Elaborator, layer1.EdgeTags.Ground)
-    return [fnode for fnode in l1.all if x.tag == layer1.NodeTags.Foundational
-            and x.ftag in requested_tags]
+    return [fnode for fnode in l1.all
+            if fnode.tag == layer1.NodeTags.Foundational and
+            fnode.ftag in requested_tags]
 
 
 def extract_head(fnode):
