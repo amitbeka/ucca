@@ -85,6 +85,22 @@ def extract_head(fnode):
         return None
 
 
+def is_noun(fnode):
+    """Returns whether the fnode is a noun.
+
+    Args:
+        fnode: layer1.FoundationalNode object who have at least one Terminal
+        as a child
+
+    Returns:
+        Whether the first Terminal child has NN* (PTB noun POS tag) in its
+        extra[postag] attribute.
+
+    """
+    return fnode.terminals and re.match(r'NN.+',
+                                        fnode.terminals[0].extra['postag'])
+
+
 def filter_noun_heads(heads):
     """Extract only the possible noun heads from the given FNodes.
 
