@@ -13,28 +13,27 @@ def main():
         words = words[int(sys.argv[2]):]
     output = []
     for word in words:
-        while True:
-            entries = col.by_form(word)
-            if not entries:
-                output.append((word, 'NOT FOUND'))
-                break
-            if all(s.pos != POSTags.Noun
-                    for e in entries for s in e.senses):
-                output.append((word, 'NOT NOUN'))
-                break
-            for entry in entries:
-                print("\n\n\n{}#{}".format(entry.key, entry.context))
-                print("\n===\n".join(str(s) for s in entry.senses))
-            user = input("select 0-5, Q or anything else to skip: ")
-            if user == 'Q':
-                return output
-            try:
-                score = int(user)
-                assert 0 <= score <= 5
-                output.append((word, user))
-                break
-            except:
-                break
+        entries = col.by_form(word)
+        if not entries:
+            output.append((word, 'NOT FOUND'))
+            continue
+        if all(s.pos != POSTags.Noun
+                for e in entries for s in e.senses):
+            output.append((word, 'NOT NOUN'))
+            continue
+        for entry in entries:
+            print("\n\n\n{}#{}".format(entry.key, entry.context))
+            print("\n===\n".join(str(s) for s in entry.senses))
+        user = input("{}\nselect 0-5, Q or anything else to skip: "
+                     .format(word))
+        if user == 'Q':
+            return output
+        try:
+            score = int(user)
+            assert 0 <= score <= 5
+            output.append((word, user))
+        except:
+            output.append((word, 'NOT NOUN'))
     return output
 
 
