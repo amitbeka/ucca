@@ -6,6 +6,10 @@ from sklearn.cross_validation import cross_val_score
 from sklearn.ensemble import GradientBoostingClassifier
 
 
+# number which means the label is undecisive
+UNDECISIVE_LABEL = 2
+
+
 def create_targets_array(targets_fd):
     """target+label line ==> labels ndarray, string tuple"""
     targets = []
@@ -126,3 +130,15 @@ def get_probabilities_prediction(fmat, clas):
     else:
         probs = clas.pred_proba(fmat)  # always in the right order
     return probs
+
+
+def return_new_labels(probs, confidence_0, confidence_1):
+    labels = np.zeros(len(probs), dtype=np.int32)
+    for i, prob in enumerate(probs):
+        if confidence_0 < prob < confidence_1:
+            labels[i] = UNDECISIVE_LABEL
+        elif prob <= confidence_0:
+            labels[i] = 0
+        elif prob >= confidence_1:
+            labels[i] = 1
+    return labels
