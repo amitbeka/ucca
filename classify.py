@@ -39,6 +39,11 @@ def train_classifier(fmat, labels, method):
         'c_svc': mlpy.LibSvm(),
         'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
         'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid'),
+        'c_svc_prob': mlpy.LibSvm(probability=True),
+        'nu_svc_linear_prob': mlpy.LibSvm('nu_svc', 'linear',
+                                          probability=True),
+        'nu_svc_sigmoid_prob': mlpy.LibSvm('nu_svc', 'sigmoid',
+                                           probability=True),
         'lr': mlpy.LibLinear(),
         'gboost': GradientBoostingClassifier()
     }
