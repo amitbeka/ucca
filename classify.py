@@ -116,3 +116,13 @@ def evaluate_bl(labels_known, labels_guessed):
     recall = tp / (tp + fn)
     accuracy = (tp + tn) / (tp + tn + fp + fn)
     return (precision, recall, accuracy)
+
+
+def get_probabilities_prediction(fmat, clas):
+    if hasattr(clas, 'pred_probability'):
+        probs = clas.pred_probality(fmat)
+        if clas.labels()[0] != 0:  # labels are reversed, [1, 0]
+            probs = np.array([[x[1], x[0]] for x in probs])
+    else:
+        probs = clas.pred_proba(fmat)  # always in the right order
+    return probs
