@@ -34,7 +34,7 @@ def create_feature_matrix(scores_fd, targets, features):
     return mat
 
 
-def evaluate(fmat, labels, targets, method='c_svc', k=10):
+def train_classifier(fmat, labels, method):
     classifiers = {
         'c_svc': mlpy.LibSvm(),
         'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
@@ -42,17 +42,24 @@ def evaluate(fmat, labels, targets, method='c_svc', k=10):
         'lr': mlpy.LibLinear(),
         'gboost': GradientBoostingClassifier()
     }
-    cls = classifiers[method]
+    clas = classifiers[method]
+    if hasattr(clas, 'learn'):
+        clas.learn(fmat, labels)
+    else:
+        clas.fit(fmat, labels)
+    return clas
+
+
+def evaluate(fmat, labels, targets, method='c_svc', k=10):
     nptargets = np.array(targets)
     out = []
     detailed = [[[], []], [[], []]]
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
+        clas = train_classifier(fmat[tr], labels[tr], method)
         try:
-            cls.learn(fmat[tr], labels[tr])
-            pred = cls.pred(fmat[ts])
+            pred = clas.pred(fmat[ts])
         except AttributeError:
-            cls.fit(fmat[tr], labels[tr])
-            pred = cls.predict(fmat[ts])
+            pred = clas.predict(fmat[ts])
         for target, x, y in zip(nptargets[ts], labels[ts], pred):
             detailed[x][int(y)].append(target)
         tp = [x == int(y) == 1
