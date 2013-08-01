@@ -60,6 +60,14 @@ def train_classifier(fmat, labels, method):
     return clas
 
 
+def predict_labels(clas, fmat):
+    if hasattr(clas, 'pred'):
+        labels = clas.pred(fmat)
+    else:
+        labels = clas.predict(fmat)
+    return labels
+
+
 def evaluate(fmat, labels, targets, method='c_svc', k=10):
     nptargets = np.array(targets)
     out = []
@@ -178,7 +186,7 @@ def self_train_classifier(fmat_all, pre_scores, targets_all, params_list,
 
     for params in params_list:
         # taking the relevant pre-labeled data
-        pre_labels_to_take = params[PARAM_PRE_LABELS]
+        pre_labels_to_take = list(params[PARAM_PRE_LABELS])
         labels = pre_labels[pre_labels_to_take][0]
         targets = pre_targets[pre_labels_to_take][0]
         fmat = pre_fmat[pre_labels_to_take][0]
