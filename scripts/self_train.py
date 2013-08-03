@@ -12,33 +12,39 @@ PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
 
 
 NUM_ITERATIONS_OPTS = tuple(range(2, 9))
-PRE_LABELS_OPTS = ((0, 4, 5), (0, 1, 4, 5), (0, 1, 3, 4, 5),
+PRE_LABELS_OPTS = ((0, 4, 5), (0, 4, 5), (0, 4, 5), (0, 4, 5), (0, 4, 5),
+                   (0, 1, 4, 5), (0, 1, 4, 5), (0, 4, 5),
+                   (0, 1, 3, 4, 5), (0, 1, 3, 4, 5),
                    (0, 1, 2, 3, 4, 5))
-CONFIDENCE0_OPTS = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7)
-CONFIDENCE1_OPTS = (0.5, 0.6, 0.7, 0.8, 0.9)
+CONFIDENCE0_OPTS = (0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.3,
+                    0.4, 0.4, 0.4, 0.4, 0.5, 0.5, 0.6, 0.6, 0.7)
+CONFIDENCE1_OPTS = (0.95, 0.95, 0.9, 0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.8,
+                    0.7, 0.7, 0.7, 0.6, 0.6, 0.5)
 
 
 def params_generator(max_opts):
     prev_opts = []
-    num_iter = random.choice(NUM_ITERATIONS_OPTS)
     while len(prev_opts) < max_opts:
-        opt = tuple(tuple(random.choice(x) for x in
-                          (PRE_LABELS_OPTS, CONFIDENCE0_OPTS,
-                           CONFIDENCE1_OPTS))
-                    for _ in range(num_iter))
-        # check for legality, params change in the correct direction
+        num_iter = random.choice(NUM_ITERATIONS_OPTS)
+        seq = range(num_iter - 1)
+        while True:
+            scores = random.sample(PRE_LABELS_OPTS, num_iter)
+            scores.sort(key=len)
+            if all(len(scores[i]) <= len(scores[i + 1]) for i in seq):
+                break
+        while True:
+            conf0 = random.sample(CONFIDENCE0_OPTS, num_iter)
+            conf0.sort()
+            if all(conf0[i] <= conf0[i + 1] for i in seq):
+                break
+        while True:
+            conf1 = random.sample(CONFIDENCE1_OPTS, num_iter)
+            conf1.sort(reverse=True)
+            if all(conf1[i] >= conf1[i + 1] for i in seq):
+                if all(c0 <= c1 for c0, c1 in zip(conf0, conf1)):
+                    break
+        opt = tuple(x for x in zip(scores, conf0, conf1))
         if opt in prev_opts:
-            continue
-        if any(x[1] > x[2] for x in opt):
-            continue
-        if any(len(opt[i][0]) > len(opt[i + 1][0])
-               for i in range(num_iter - 1)):
-            continue
-        if any(opt[i + 1][1] < opt[i][1]
-               for i in range(num_iter - 1)):
-            continue
-        if any(opt[i + 1][2] > opt[i][2]
-               for i in range(num_iter - 1)):
             continue
         prev_opts.append(opt)
         num_iter = random.choice(NUM_ITERATIONS_OPTS)
@@ -59,7 +65,7 @@ def main():
     tokens = [x.text for x in terminals]
 
     # Running through random parameters settings
-    for params in params_generator(1000):
+    for params in params_generator(50000):
         clas, _, _ = classify.self_train_classifier(fmat, scores,
                                                     target_array, params)
         target_labels = [int(x >= classify.PRE_LABELS_THRESH) for x in scores]
