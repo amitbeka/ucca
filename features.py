@@ -9,6 +9,7 @@ UCCA passages is also covered.
 
 import argparse
 import sys
+import re
 import nltk
 import pickle
 from ucca import lex, collins
@@ -218,6 +219,28 @@ def extract_dict_features(targets, collins_path):
     return feats
 
 
+def extract_hfw_dict_features(targets, collins_path, hfw):
+    targets = [' '.join(target) for target in targets]  # tuples to strings
+    with open(collins_path, 'rb') as f:
+        raw_dict = pickle.load(f)
+    coll = collins.CollinsDictionary(raw_dict)
+    feats = []
+    descriptions = []
+    for target in targets:
+        entries = coll.by_key(target)
+        if len(entries) != 1:  # we don't handle context-dependent entries
+            descriptions.append([])
+            continue
+        descriptions.append([s.desc for s in entries[0].senses
+                             if s.pos == POSTags.Noun])
+    for word in hfw:
+        rx = re.compile('\W{}\W'.format(word))
+        feats.append(' '.join(
+            str(int(any(rx.search(d) for d in tdesc)))
+            for tdesc in descriptions))
+    return feats
+
+
 def print_progress(current, updated=[0]):
     """Prints progress to stderr by adding current to updated[0] each time."""
     updated[0] = updated[0] + current
@@ -245,6 +268,7 @@ def parse_cmd():
     parser.add_argument('--prefixes')
     parser.add_argument('--collins')
     parser.add_argument('--wiktionary')
+    parser.add_argument('--hfw')
 
     args = parser.parse_args()
     if args.exclude:
@@ -267,6 +291,9 @@ def parse_cmd():
     if args.prefixes:
         with open(args.prefixes) as f:
             args.prefixes = tuple(x.strip() for x in f)
+    if args.hfw:
+        with open(args.hfw) as f:
+            args.hfw = [x.strip() for x in f.readlines()]
 
     return args
 
@@ -329,6 +356,7 @@ def main():
                 dual_vn.append('0')
         res.append(" ".join(dual_vn))
         res += extract_dict_features(args.targets, args.collins)
+        res += extract_hfw_dict_features(args.targets, args.collins, args.hfw)
         print("\n".join(res))
 
 
