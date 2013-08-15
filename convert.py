@@ -13,6 +13,7 @@ The possible other formats are:
 import operator
 import re
 import string
+import sys
 import xml.sax.saxutils
 import xml.etree.ElementTree as ET
 
@@ -310,6 +311,11 @@ def _from_site_annotation(elem, passage, elem2node):
         if elem.tag == SiteCfg.Tags.Remote:
             edge_tag = SiteCfg.TagConversion[elem.get(SiteCfg.Attr.ElemTag)]
             child = SiteUtil.get_node(elem, elem2node)
+            if child is None:  # big in XML, points to an invalid ID
+                sys.stderr.write(
+                    "Warning: remoteUnit with ID {} is invalid - skipping\n".
+                    format(elem.get(SiteCfg.Attr.SiteID)))
+                continue
             l1.add_remote(parent, edge_tag, child)
         elif elem.tag == SiteCfg.Tags.Linkage:
             args = [elem2node[x] for x in
