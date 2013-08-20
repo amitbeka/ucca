@@ -7,7 +7,7 @@ from ucca import classify, tokeneval
 
 DB_PATH = "/home/beka/thesis/db/"
 TARGETS_PATH = DB_PATH + "nouns/targets-scores.nouns.pickle"
-FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict.nouns"
+FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict_hfw.nouns"
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
 
 
@@ -60,12 +60,12 @@ def main():
         fmat = pickle.load(f)
     with open(PASSAGES_PATH, "rb") as f:
         passages = pickle.load(f)
-    passages = passages[:34]
+    passages = passages[:50]
     terminals, token_labels = tokeneval.get_terminals_labels(passages)
     tokens = [x.text for x in terminals]
 
     # Running through random parameters settings
-    for params in params_generator(50000):
+    for params in params_generator(2):
         clas, _, _ = classify.self_train_classifier(fmat, scores,
                                                     target_array, params)
         target_labels = [int(x >= classify.PRE_LABELS_THRESH) for x in scores]
