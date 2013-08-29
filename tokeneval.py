@@ -22,37 +22,36 @@ def get_terminals_labels(passages):
     return terminals, labels
 
 
-#def get_context(terminal, context=3):
-    #pass
-            #main_position = main_terminal.position
-            #pre_context = [l0.by_position(i).text
-                           #for i in range(main_position - 1,
-                                          #main_position - context - 1, -1)
-                           #if i >= 1]
-            #post_context = [l0.by_position(i).text
-                            #for i in range(main_position + 1,
-                                           #main_position + context + 1, 1)
-                            #if i <= len(l0.all) + 1]
-            #tokens.append((main_terminal.text, tuple(pre_context),
-                           #tuple(post_context)))
-    #return tokens
+def get_context(terminal, context=2):
+    pass
+            main_position = main_terminal.position
+            pre_context = [l0.by_position(i).text
+                           for i in range(main_position - 1,
+                                          main_position - context - 1, -1)
+                           if i >= 1]
+            post_context = [l0.by_position(i).text
+                            for i in range(main_position + 1,
+                                           main_position + context + 1, 1)
+                            if i <= len(l0.all) + 1]
+            tokens.append((main_terminal.text, tuple(pre_context),
+                           tuple(post_context)))
+    return tokens
+
+
+def _lemmatize(token):
+    lemma = token
+    if lemma in targets:
+        return lemma
+    if lemma.istitle():
+        lemma = token.lower()
+    if lemma in targets:
+        return lemma
+    lemma = wn.lemmatize(lemma)
+    return lemma
 
 
 def evaluate_with_type(tokens, token_labels, targets, target_labels):
-
     wn = nltk.stem.wordnet.WordNetLemmatizer()
-
-    def _lemmatize(token):
-        lemma = token
-        if lemma in targets:
-            return lemma
-        if lemma.istitle():
-            lemma = token.lower()
-        if lemma in targets:
-            return lemma
-        lemma = wn.lemmatize(lemma)
-        return lemma
-
     tp, tn, fp, fn = [], [], [], []  # True/Flase positive/negative labels
     found, not_found = [], []
     for token, token_label in zip(tokens, token_labels):
