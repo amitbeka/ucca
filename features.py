@@ -263,7 +263,7 @@ def extract_hfw_dict_features(targets, collins_path, hfw):
         descriptions.append([s.desc for s in entries[0].senses
                              if s.pos == POSTags.Noun])
     for word in hfw:
-        rx = re.compile('\W{}\W'.format(word))
+        rx = re.compile(r'\W{}\W'.format(word))
         feats.append(' '.join(
             str(int(any(rx.search(d) for d in tdesc)))
             for tdesc in descriptions))
@@ -364,8 +364,7 @@ def main():
 
     if args.command == 'ngrams' and args.action == 'score':
         targets = [x[0] for x in args.targets]  # converting from tuples to str
-        scores = calculate_ngram_features(sys.stdin, args.featurewords,
-                                          targets)
+        calculate_ngram_features(sys.stdin, args.featurewords, targets)
 
     if args.command == 'counts' and args.action == 'extract':
         for res in create_feature_counts(sys.stdin, args.targets,
