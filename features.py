@@ -186,31 +186,32 @@ def calculate_ngram_features(lines, features, targets, divider=10 ** 5):
                                                 count / divider))
 
 
-def calculate_cluster_features(lines, clusters, targets):
-    """both targets and the words in clusters and string of one word"""
-    features = {target: [(0, 0)] * len(clusters) for target in targets}
+def calculate_context_features(lines, targets, feature_sets):
+    """both targets and the words in feature sets are strings of one word"""
+    BEFORE, AFTER = 0, 1
+    features = {target: [(0, 0)] * len(feature_sets) for target in targets}
     for line in lines:
-        count, bigram = parse_ngram_line(line)
-        if bigram[0] in targets:
-            for i, cluster in enumerate(clusters):
-                if bigram[1] in cluster:
-                    features[bigram[0]][i][1] += count
+        count, ngram = parse_ngram_line(line)
+        ngram = [x.lower() for x in ngram]
+        if ngram[0] in targets:
+            for i, feature_words in enumerate(feature_sets):
+                if any(word in feature_words for word in ngram[1:]):
+                    features[ngram[0]][i][AFTER] += count
                     break
-        if bigram[1] in targets:
-            for i, cluster in enumerate(clusters):
-                if bigram[0] in cluster:
-                    features[bigram[1]][i][0] += count
+        if ngram[-1] in targets:
+            for i, feature_words in enumerate(feature_sets):
+                if any(word in feature_words for word in ngram[:-1]):
+                    features[ngram[-1]][i][BEFORE] += count
                     break
-    # making it "conditional" features to normalize it
-    for counts in features.items():
-        sum0 = sum(x[0] for x in counts)
-        sum1 = sum(x[1] for x in counts)
-        for i in range(len(counts)):
-            counts[i][0] /= sum0
-            counts[i][1] /= sum1
+    # Normalizing by moving to [0,1] range
+    for target, counts in features.items():
+        sum0 = sum(x[BEFORE] for x in counts)
+        sum1 = sum(x[AFTER] for x in counts)
+        features[target] = [(count[BEFORE] / sum0, count[AFTER] / sum1)
+                            for count in counts]
     # printing by feature, not by target
-    for i in range(len(clusters)):
-        for j in (0, 1):
+    for i in range(len(feature_sets)):
+        for j in (BEFORE, AFTER):
             print(" ".join("{:9f}".format(features[t][i][j]) for t in targets))
 
 
@@ -280,7 +281,7 @@ def parse_cmd():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=('ngrams', 'counts', 'morph'))
     parser.add_argument('action', choices=('extract', 'filter', 'merge',
-                                           'score', 'clusters'))
+                                           'score', 'context'))
     parser.add_argument('--ngram_size', type=int, default=1)
     parser.add_argument('--sort', action='store_true')
     parser.add_argument('--exclude')
@@ -323,11 +324,6 @@ def parse_cmd():
     if args.hfw:
         with open(args.hfw) as f:
             args.hfw = [x.strip() for x in f.readlines()]
-    if args.clusters:
-        with open(args.clusters) as f:
-            args.clusters = [set(tuple(y.split(' '))
-                                 for y in x.strip().split('\t'))
-                             for x in f]
 
     return args
 
@@ -393,10 +389,9 @@ def main():
         res += extract_hfw_dict_features(args.targets, args.collins, args.hfw)
         print("\n".join(res))
 
-    if args.command == 'ngrams' and args.action == 'clusters':
+    if args.command == 'ngrams' and args.action == 'context':
         targets = [x[0] for x in args.targets]
-        features = calculate_cluster_features(sys.stdin, args.clusters,
-                                              targets)
+        calculate_context_features(sys.stdin, targets, args.featurewords)
 
 
 if __name__ == '__main__':
