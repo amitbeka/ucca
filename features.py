@@ -189,8 +189,13 @@ def calculate_ngram_features(lines, features, targets, divider=10 ** 5):
 def calculate_context_features(lines, targets, feature_sets):
     """both targets and the words in feature sets are strings of one word"""
     BEFORE, AFTER = 0, 1
-    features = {target: [(0, 0)] * len(feature_sets) for target in targets}
-    for line in lines:
+    NOUN = nltk.corpus.reader.wordnet.NOUN
+    wn = nltk.stem.wordnet.WordNetLemmatizer()
+    features = {target:None for target in targets}
+    for target in targets:
+        features[target] = []
+        for _ in feature_sets:
+            features[target].append([0, 0])
         count, ngram = parse_ngram_line(line)
         ngram = [x.lower() for x in ngram]
         if ngram[0] in targets:
@@ -205,10 +210,17 @@ def calculate_context_features(lines, targets, feature_sets):
                     break
     # Normalizing by moving to [0,1] range
     for target, counts in features.items():
-        sum0 = sum(x[BEFORE] for x in counts)
-        sum1 = sum(x[AFTER] for x in counts)
-        features[target] = [(count[BEFORE] / sum0, count[AFTER] / sum1)
-                            for count in counts]
+        sum_before = sum(x[BEFORE] for x in counts)
+        sum_after = sum(x[AFTER] for x in counts)
+        if sum_before == 0:
+            prob_before = [0 for count in counts]
+        else:
+            prob_before = [count[BEFORE] / sum_before for count in counts]
+        if sum_after == 0:
+            prob_after = [0 for count in counts]
+        else:
+            prob_after = [count[AFTER] / sum_after for count in counts]
+        features[target] = [(x, y) for x, y in zip(prob_before, prob_after)]
     # printing by feature, not by target
     for i in range(len(feature_sets)):
         for j in (BEFORE, AFTER):
@@ -298,7 +310,6 @@ def parse_cmd():
     parser.add_argument('--collins')
     parser.add_argument('--wiktionary')
     parser.add_argument('--hfw')
-    parser.add_argument('--clusters')
 
     args = parser.parse_args()
     if args.exclude:
