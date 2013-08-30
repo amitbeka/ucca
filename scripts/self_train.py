@@ -5,6 +5,9 @@ from itertools import combinations_with_replacement as comb_repeat
 
 from ucca import classify, tokeneval
 
+METHOD = 'lr'
+NUM_PASSAGES = 50
+NUM_SAMPLING = 20000
 DB_PATH = "/home/beka/thesis/db/"
 TARGETS_PATH = DB_PATH + "nouns/targets-scores.nouns.pickle"
 FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict_hfw.nouns"
@@ -60,14 +63,15 @@ def main():
         fmat = pickle.load(f)
     with open(PASSAGES_PATH, "rb") as f:
         passages = pickle.load(f)
-    passages = passages[:50]
+    passages = passages[:NUM_PASSAGES]
     terminals, token_labels = tokeneval.get_terminals_labels(passages)
     tokens = [x.text for x in terminals]
 
     # Running through random parameters settings
-    for params in params_generator(2):
+    for params in params_generator(NUM_SAMPLING):
         clas, _, _ = classify.self_train_classifier(fmat, scores,
-                                                    target_array, params)
+                                                    target_array, params,
+                                                   method=METHOD)
         target_labels = [int(x >= classify.PRE_LABELS_THRESH) for x in scores]
         target_labels += list(classify.predict_labels(clas,
                                                       fmat[len(scores):]))
