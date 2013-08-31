@@ -196,6 +196,9 @@ def calculate_context_features(lines, targets, feature_sets):
         features[target] = []
         for _ in feature_sets:
             features[target].append([0, 0])
+    for line_num, line in enumerate(lines):
+        if line_num % 10000 == 0:
+            sys.stderr.write(str(line_num) + '\n')
         count, ngram = parse_ngram_line(line)
         ngram = [x.lower() for x in ngram]
         if ngram[0] in targets:
