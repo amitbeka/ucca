@@ -2,7 +2,7 @@ import pickle
 import nltk
 import re
 
-from ucca import layer0, layer1
+from ucca import layer0, layer1, classify
 
 
 def get_terminals_labels(passages):
@@ -23,18 +23,17 @@ def get_terminals_labels(passages):
 
 
 def get_context(terminal, context=2):
-    pass
-            main_position = main_terminal.position
-            pre_context = [l0.by_position(i).text
-                           for i in range(main_position - 1,
-                                          main_position - context - 1, -1)
-                           if i >= 1]
-            post_context = [l0.by_position(i).text
-                            for i in range(main_position + 1,
-                                           main_position + context + 1, 1)
-                            if i <= len(l0.all) + 1]
-            tokens.append((main_terminal.text, tuple(pre_context),
-                           tuple(post_context)))
+    main_position = main_terminal.position
+    pre_context = [l0.by_position(i).text
+                   for i in range(main_position - 1,
+                                  main_position - context - 1, -1)
+                   if i >= 1]
+    post_context = [l0.by_position(i).text
+                    for i in range(main_position + 1,
+                                   main_position + context + 1, 1)
+                    if i <= len(l0.all) + 1]
+    tokens.append((main_terminal.text, tuple(pre_context),
+                   tuple(post_context)))
     return tokens
 
 
@@ -71,3 +70,18 @@ def evaluate_with_type(tokens, token_labels, targets, target_labels):
         else:
             not_found.append((token, token_label))
     return found, not_found, tp, tn, fp, fn
+
+
+def evaluate_with_classifier(tokens, token_labels, token_features, classifier):
+    tp, tn, fp, fn = [], [], [], []  # True/Flase positive/negative labels
+    pred = classify.predict_labels(classifier, token_features).tolist()
+    for token, token_label, guessed_label in zip(tokens, token_labels, pred):
+        if guessed_label == token_label == 0:
+            tn.append(token)
+        elif guessed_label == token_label == 1:
+            tp.append(token)
+        elif token_label == 0:
+            fp.append(token)
+        else:
+            fn.append(token)
+    return len(tokens), 0, tp, tn, fp, fn
