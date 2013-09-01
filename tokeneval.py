@@ -77,14 +77,20 @@ def evaluate_with_type(tokens, token_labels, targets, target_labels):
 
 def evaluate_with_classifier(tokens, token_labels, token_features, classifier):
     tp, tn, fp, fn = [], [], [], []  # True/Flase positive/negative labels
+    found, not_found = [], []
     pred = classify.predict_labels(classifier, token_features).tolist()
     for token, token_label, guessed_label in zip(tokens, token_labels, pred):
-        if guessed_label == token_label == 0:
-            tn.append(token)
-        elif guessed_label == token_label == 1:
-            tp.append(token)
-        elif token_label == 0:
-            fp.append(token)
+        lemma = lemmatize(token, targets)
+        if lemma in targets:
+            found.append((token, token_label))
+            if guessed_label == token_label == 0:
+                tn.append(token)
+            elif guessed_label == token_label == 1:
+                tp.append(token)
+            elif token_label == 0:
+                fp.append(token)
+            else:
+                fn.append(token)
         else:
-            fn.append(token)
-    return len(tokens), 0, tp, tn, fp, fn
+            not_found.append((token, token_label))
+    return found, not_found, tp, tn, fp, fn
