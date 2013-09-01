@@ -1,16 +1,17 @@
 import pickle
 import random
+import sys
 import numpy as np
 from itertools import combinations_with_replacement as comb_repeat
 
 from ucca import classify, tokeneval
 
-METHOD = 'lr'
+METHOD = sys.argv[1]
 NUM_PASSAGES = 50
 NUM_SAMPLING = 20000
 DB_PATH = "/home/beka/thesis/db/"
 TARGETS_PATH = DB_PATH + "nouns/targets-scores.nouns.pickle"
-FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict_hfw.nouns"
+FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict.nouns"
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
 
 
@@ -68,7 +69,8 @@ def main():
     tokens = [x.text for x in terminals]
 
     # Running through random parameters settings
-    for params in params_generator(NUM_SAMPLING):
+    for i, params in enumerate(params_generator(NUM_SAMPLING)):
+        sys.stderr.write('{} {}\n'.format(METHOD, i))
         clas, _, _ = classify.self_train_classifier(fmat, scores,
                                                     target_array, params,
                                                    method=METHOD)
