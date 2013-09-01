@@ -22,22 +22,26 @@ def get_terminals_labels(passages):
     return terminals, labels
 
 
-def get_context(terminal, context=2):
-    main_position = main_terminal.position
-    pre_context = [l0.by_position(i).text
-                   for i in range(main_position - 1,
-                                  main_position - context - 1, -1)
-                   if i >= 1]
-    post_context = [l0.by_position(i).text
-                    for i in range(main_position + 1,
-                                   main_position + context + 1, 1)
-                    if i <= len(l0.all) + 1]
-    tokens.append((main_terminal.text, tuple(pre_context),
-                   tuple(post_context)))
+def get_context(terminals, context=2):
+    tokens = []
+    for main_terminal in terminals:
+        l0 = main_terminal.root.layer(layer0.LAYER_ID)
+        main_position = main_terminal.position
+        pre_context = [l0.by_position(i).text
+                       for i in range(main_position - 1,
+                                      main_position - context - 1, -1)
+                       if i >= 1]
+        post_context = [l0.by_position(i).text
+                        for i in range(main_position + 1,
+                                       main_position + context + 1, 1)
+                        if i <= len(l0.all)]
+        tokens.append((main_terminal.text, tuple(pre_context),
+                       tuple(post_context)))
     return tokens
 
 
-def _lemmatize(token):
+def lemmatize(token, targets):
+    wn = nltk.stem.wordnet.WordNetLemmatizer()
     lemma = token
     if lemma in targets:
         return lemma
@@ -50,11 +54,10 @@ def _lemmatize(token):
 
 
 def evaluate_with_type(tokens, token_labels, targets, target_labels):
-    wn = nltk.stem.wordnet.WordNetLemmatizer()
     tp, tn, fp, fn = [], [], [], []  # True/Flase positive/negative labels
     found, not_found = [], []
     for token, token_label in zip(tokens, token_labels):
-        lemma = _lemmatize(token)
+        lemma = lemmatize(token, targets)
         # finding in targets with lemma, but recording results with the orig
         if lemma in targets:
             found.append((token, token_label))
