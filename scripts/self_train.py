@@ -8,10 +8,10 @@ from ucca import classify, tokeneval
 
 METHOD = sys.argv[1]
 NUM_PASSAGES = 50
-NUM_SAMPLING = 20000
+NUM_SAMPLING = 5000
 DB_PATH = "/home/beka/thesis/db/"
-TARGETS_PATH = DB_PATH + "nouns/targets-scores.nouns.pickle"
-FMAT_PATH = DB_PATH + "nouns/fmat_morph_dict.nouns"
+TARGETS_PATH = DB_PATH + "nouns2/targets-scores.nouns2.pickle"
+FMAT_PATH = DB_PATH + "nouns2/fmat_morph_dict.nouns2"
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
 
 
