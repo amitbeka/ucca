@@ -75,7 +75,8 @@ def evaluate_with_type(tokens, token_labels, targets, target_labels):
     return found, not_found, tp, tn, fp, fn
 
 
-def evaluate_with_classifier(tokens, token_labels, token_features, classifier):
+def evaluate_with_classifier(tokens, token_labels, targets,
+                             token_features, classifier):
     tp, tn, fp, fn = [], [], [], []  # True/Flase positive/negative labels
     found, not_found = [], []
     pred = classify.predict_labels(classifier, token_features).tolist()
