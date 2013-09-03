@@ -137,7 +137,7 @@ def get_probabilities_prediction(fmat, clas):
         if clas.labels()[0] != 0:  # labels are reversed, [1, 0]
             probs = np.array([[x[1], x[0]] for x in probs])
     else:
-        probs = clas.pred_proba(fmat)  # always in the right order
+        probs = clas.predict_proba(fmat)  # always in the right order
     return probs
 
 
@@ -219,7 +219,7 @@ def self_train_classifier(fmat_all, pre_scores, targets_all, params_list,
         if hasattr(clas, 'pred_probability'):
             _, probs = zip(*clas.pred_probability(unlabeled_fmat))
         else:
-            _, probs = zip(*clas.pred_proba(unlabeled_fmat))
+            _, probs = zip(*clas.predict_proba(unlabeled_fmat))
         unlabeled_labels = return_new_labels(probs, params[PARAM_CONF0],
                                              params[PARAM_CONF1])
 
