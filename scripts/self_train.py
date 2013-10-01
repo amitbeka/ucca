@@ -11,8 +11,11 @@ NUM_PASSAGES = 50
 NUM_SAMPLING = 5000
 DB_PATH = "/home/beka/thesis/db/"
 TARGETS_PATH = DB_PATH + "nouns2/targets-scores.nouns2.pickle"
-FMAT_PATH = DB_PATH + "nouns2/fmat_morph_dict.nouns2"
+FMAT_PATH = DB_PATH + "nouns2/fmat_morph_dict_hfw_context.nouns2"
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
+#PARAMS = pickle.load(open('/home/beka/thesis/results/nouns2/type/params.pkl',
+                          #'rb'))
+PARAMS = [([(0, 4, 5), 0.2, 0.95], [(0, 4, 5), 0.2, 0.9], [(0, 4, 5), 0.3, 0.9], [(0, 1, 4, 5), 0.6, 0.9], [(0, 1, 3, 4, 5), 0.6, 0.8], [(0, 1, 2, 3, 4, 5), 0.7, 0.7])]
 
 
 NUM_ITERATIONS_OPTS = tuple(range(2, 9))
@@ -69,7 +72,8 @@ def main():
     tokens = [x.text for x in terminals]
 
     # Running through random parameters settings
-    for i, params in enumerate(params_generator(NUM_SAMPLING)):
+    #for i, params in enumerate(params_generator(NUM_SAMPLING)):
+    for i, params in enumerate(PARAMS):
         sys.stderr.write('{} {}\n'.format(METHOD, i))
         clas, _, _ = classify.self_train_classifier(fmat, scores,
                                                     target_array, params,
