@@ -173,7 +173,7 @@ PRE_LABELS_THRESH = 3
 
 
 def self_train_classifier(fmat_all, pre_scores, targets_all, params_list,
-                          method='c_svc_prob'):
+                          method, c_param, nu_param, learn_rate, n_estimators):
 
     split_point = np.array([len(pre_scores)])
     pre_fmat, unlabeled_fmat = np.split(fmat_all, split_point)
@@ -219,7 +219,8 @@ def self_train_classifier(fmat_all, pre_scores, targets_all, params_list,
         fmat = np.append(fmat[0], fmat[1], 0)
 
         # training a classifier and predicting
-        clas = train_classifier(fmat, labels, method)
+        clas = train_classifier(fmat, labels, method, c_param, nu_param,
+                               learn_rate, n_estimators)
         if hasattr(clas, 'pred_probability'):
             _, probs = zip(*clas.pred_probability(unlabeled_fmat))
         else:
