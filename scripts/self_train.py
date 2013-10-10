@@ -16,7 +16,9 @@ FMAT_PATH = sys.argv[3]
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
 #PARAMS = pickle.load(open('/home/beka/thesis/results/nouns2/type/params.pkl',
                           #'rb'))
-PARAMS = [([(0, 4, 5), 0.2, 0.95], [(0, 4, 5), 0.2, 0.9], [(0, 4, 5), 0.3, 0.9], [(0, 1, 4, 5), 0.6, 0.9], [(0, 1, 3, 4, 5), 0.6, 0.8], [(0, 1, 2, 3, 4, 5), 0.7, 0.7])]
+PARAMS = [([(0, 4, 5), 0.2, 0.95], [(0, 4, 5), 0.2, 0.9],
+           [(0, 4, 5), 0.3, 0.9], [(0, 1, 4, 5), 0.6, 0.9],
+           [(0, 1, 3, 4, 5), 0.6, 0.8], [(0, 1, 2, 3, 4, 5), 0.7, 0.7])]
 
 
 NUM_ITERATIONS_OPTS = tuple(range(2, 9))

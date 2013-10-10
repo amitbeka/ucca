@@ -7,15 +7,18 @@ from itertools import combinations_with_replacement as comb_repeat
 from ucca import classify, tokeneval
 
 METHOD = sys.argv[1]
+CLS_PRM = float(sys.argv[2])
 NUM_PASSAGES = 50
 NUM_SAMPLING = 5000
 DB_PATH = "/home/beka/thesis/db/"
 TARGETS_PATH = DB_PATH + "nouns2/targets-scores.nouns2.pickle"
-FMAT_PATH = DB_PATH + "nouns2/fmat_morph_dict_hfw_context.nouns2"
+FMAT_PATH = sys.argv[3]
 PASSAGES_PATH = DB_PATH + "db_18_6/huca_18_6_pos_random_filtered.pickle"
-TOKENS_FMAT = DB_PATH + "nouns2/fmat_tokens_mdhc.nouns2"
-PARAMS = pickle.load(open('/home/beka/thesis/results/nouns2/token/params.pkl',
-                          'rb'))
+TOKENS_FMAT = sys.argv[4]
+#PARAMS = pickle.load(open('/home/beka/thesis/results/nouns2/token/params.pkl',
+                          #'rb'))
+PARAMS = [([(0, 4, 5), 0.1, 0.95], [(0, 1, 4, 5), 0.4, 0.95],
+           [(0, 1, 3, 4, 5), 0.6, 0.9], [(0, 1, 3, 4, 5), 0.7, 0.9])]
 
 
 NUM_ITERATIONS_OPTS = tuple(range(2, 9))
@@ -77,9 +80,10 @@ def main():
     #for i, params in enumerate(params_generator(NUM_SAMPLING)):
     for i, params in enumerate(PARAMS):
         sys.stderr.write('{} {}\n'.format(METHOD, i))
-        clas, _, _ = classify.self_train_classifier(fmat, scores,
-                                                    target_array, params,
-                                                   method=METHOD)
+        clas, _, _ = classify.self_train_classifier(
+            fmat, scores, target_array, params, method=METHOD,
+            c_param=CLS_PRM, nu_param=CLS_PRM, learn_rate=CLS_PRM,
+            n_estimators=500)
         target_labels = [int(x >= classify.PRE_LABELS_THRESH) for x in scores]
         target_labels += list(classify.predict_labels(clas,
                                                       fmat[len(scores):]))
