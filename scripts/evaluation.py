@@ -52,12 +52,15 @@ def filter_data(targets, labels, fmat, ratio):
 
 
 def run_kfold_evaluation(orig_targets, orig_labels, orig_fmat, method,
-                         ratio, detailed=False):
+                         ratio, c_param, nu_param, learn_rate, n_estimators,
+                         detailed=False):
 
     targets, labels, fmat = filter_data(orig_targets, orig_labels, orig_fmat,
                                         ratio)
 
-    stats, details = classify.evaluate(fmat, labels, targets, method)
+    stats, details = classify.evaluate(fmat, labels, targets, method, 10,
+                                       c_param, nu_param, learn_rate,
+                                       n_estimators)
     # We use zip(*stats) because stats are [(prec1, rec1, acc1), ((prec2 ...))]
     # and this turns them into [(prec1, prec2 ..), (rec1, rec2 ..)] which is
     # what we want to use mean() on
@@ -88,6 +91,14 @@ def main():
     parser.add_argument('--ratio', type=float, default=2)
     parser.add_argument('--runs', type=int, default=1,
                         help='times to run evaluation and average')
+    parser.add_argument('-c', type=float, default=1,
+                        help='C parameter for c_svc')
+    parser.add_argument('--nu', type=float, default=0.5,
+                        help='nu parameter for nu_svc*')
+    parser.add_argument('--learnrate', type=float, default=0.1,
+                        help='learning (shrinkage) rate for GB')
+    parser.add_argument('--nestimators', type=int, default=100,
+                        help='number of estimators for GB')
     args = parser.parse_args()
 
     orig_targets, orig_labels, orig_fmat = get_data_objects(args.labels,
@@ -103,7 +114,9 @@ def main():
             args.detailed = False  # no detailed results for baseline
         else:
             out = run_kfold_evaluation(orig_targets, orig_labels, orig_fmat,
-                                       args.method, args.ratio, args.detailed)
+                                       args.method, args.ratio,
+                                       args.c, args.nu, args.learnrate,
+                                       args.nestimators, args.detailed)
             if args.detailed:
                 results, details = out
             else:
@@ -111,7 +124,8 @@ def main():
         all_results.append(results)
 
     results = [np.mean(stat) for stat in zip(*all_results)]
-    print("Precision: {} Recall: {} Accuracy: {}".format(*results))
+    results.append(2*results[0]*results[1] / (results[0] + results[1]))
+    print("Precision: {} Recall: {} Accuracy: {} Fscore: {}".format(*results))
     if args.detailed:
         print("Detailed Results:")
         for true_label in [0, 1]:

@@ -39,18 +39,20 @@ def create_feature_matrix(scores_fd, targets, features):
     return mat
 
 
-def train_classifier(fmat, labels, method):
+def train_classifier(fmat, labels, method, c_param, nu_param, learn_rate,
+                     n_estimators):
     classifiers = {
-        'c_svc': mlpy.LibSvm(),
-        'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear'),
-        'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid'),
-        'c_svc_prob': mlpy.LibSvm(probability=True),
-        'nu_svc_linear_prob': mlpy.LibSvm('nu_svc', 'linear',
+        'c_svc': mlpy.LibSvm(C=c_param),
+        'nu_svc_linear': mlpy.LibSvm('nu_svc', 'linear', nu=nu_param),
+        'nu_svc_sigmoid': mlpy.LibSvm('nu_svc', 'sigmoid', nu=nu_param),
+        'c_svc_prob': mlpy.LibSvm(probability=True, C=c_param),
+        'nu_svc_linear_prob': mlpy.LibSvm('nu_svc', 'linear', nu=nu_param,
                                           probability=True),
-        'nu_svc_sigmoid_prob': mlpy.LibSvm('nu_svc', 'sigmoid',
+        'nu_svc_sigmoid_prob': mlpy.LibSvm('nu_svc', 'sigmoid', nu=nu_param,
                                            probability=True),
         'lr': mlpy.LibLinear(),
-        'gboost': GradientBoostingClassifier()
+        'gboost': GradientBoostingClassifier(learning_rate=learn_rate,
+                                             n_estimators=n_estimators)
     }
     clas = classifiers[method]
     if hasattr(clas, 'learn'):
@@ -68,12 +70,14 @@ def predict_labels(clas, fmat):
     return labels
 
 
-def evaluate(fmat, labels, targets, method='c_svc', k=10):
+def evaluate(fmat, labels, targets, method, k, c_param, nu_param,
+             learn_rate, n_estimators):
     nptargets = np.array(targets)
     out = []
     detailed = [[[], []], [[], []]]
     for tr, ts in mlpy.cv_kfold(len(labels), k, strat=labels):
-        clas = train_classifier(fmat[tr], labels[tr], method)
+        clas = train_classifier(fmat[tr], labels[tr], method, c_param,
+                                nu_param, learn_rate, n_estimators)
         try:
             pred = clas.pred(fmat[ts])
         except AttributeError:
